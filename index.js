@@ -28,7 +28,8 @@ const productSchema = new mongoose.Schema({
     description: String,
     type: String,
     original: String,
-    zip: String
+    zip: String,
+    category: Array
 });
 
 const Product = mongoose.model("Product", productSchema);
@@ -51,16 +52,35 @@ app.post("/add-product", async (req, res) => {
 // GET PRODUCTS
 // =========================
 app.get("/products", async (req, res) => {
-    const products = await Product.find();
-    res.json(products);
+    try {
+        const products = await Product.find();
+        res.json(products);
+    } catch (err) {
+        res.status(500).json([]);
+    }
 });
 
 // =========================
-// CREATE ORDER (CASHFREE)
+// DELETE PRODUCT
+// =========================
+app.delete("/delete-product/:id", async (req, res) => {
+    try {
+        await Product.deleteOne({ id: req.params.id });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// =========================
+// CASHFREE KEYS
 // =========================
 const APP_ID = process.env.APP_ID;
 const SECRET_KEY = process.env.SECRET_KEY;
 
+// =========================
+// CREATE ORDER
+// =========================
 app.post("/create-order", async (req, res) => {
 
     const { amount, id } = req.body;
@@ -133,13 +153,10 @@ app.post("/verify-payment", async (req, res) => {
 });
 
 // =========================
-// SERVER
+// 🔥 IMPORTANT FIX FOR RENDER
 // =========================
-app.listen(3000, () => {
-    console.log("🚀 Server running");
-});
+const PORT = process.env.PORT || 3000;
 
-app.delete("/delete-product/:id", async (req, res) => {
-    await Product.deleteOne({ id: req.params.id });
-    res.json({ success: true });
+app.listen(PORT, () => {
+    console.log("🚀 Server running on port " + PORT);
 });
