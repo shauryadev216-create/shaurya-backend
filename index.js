@@ -11,7 +11,7 @@ app.use(express.json());
 // 🔥 MONGODB CONNECT
 // =========================
 mongoose.connect(
-    "mongodb+srv://Shaurya_dev:Yuvraj123@cluster0.c1l4iyt.mongodb.net/productsDB?retryWrites=true&w=majority"
+    "mongodb+srv://Shaurya_dev:Yuvraj123%40@cluster0.c1l4iyt.mongodb.net/productsDB?retryWrites=true&w=majority"
 )
 .then(() => console.log("✅ MongoDB Connected"))
 .catch(err => console.error("❌ Mongo Error:", err));
