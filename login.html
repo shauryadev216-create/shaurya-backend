@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login</title>
+
+<link rel="stylesheet" href="public/css/Style.css">
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* BACKGROUND WEBSITE */
+.bg-site {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    z-index: -2;
+    transform: scale(1.2);
+}
+
+/* BLUR OVERLAY */
+.overlay {
+    position: fixed;
+    inset: 0;
+    backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.4);
+    z-index: -1;
+}
+
+/* LOGIN BOX */
+.login-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    background: #fff;
+    padding: 40px;
+    width: 360px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+/* INPUTS */
+.login-box input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+/* BUTTONS */
+.login-box button {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 12px;
+    border: none;
+    background: #111;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.login-box button:hover {
+    background: #444;
+}
+
+/* MESSAGE */
+#auth-message {
+    transition: all 0.3s ease;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+/* LOADER */
+.loader {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid white;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    margin: auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* LOADING STATE */
+.loading .btn-text {
+    display: none;
+}
+
+.loading .loader {
+    display: inline-block;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* SHAKE */
+.shake {
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+</style>
+
+</head>
+<body>
+
+<!-- 🔥 REAL WEBSITE BACKGROUND -->
+<iframe src="index.html" class="bg-site"></iframe>
+
+<!-- 🔥 BLUR OVERLAY -->
+<div class="overlay"></div>
+
+<!-- 🔥 LOGIN POPUP -->
+<div class="login-box">
+
+<h2>Welcome</h2>
+
+<p id="auth-message"></p>
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<!-- LOGIN BUTTON -->
+<button id="loginBtn" onclick="login()">
+    <span class="btn-text">Login</span>
+    <span class="loader"></span>
+</button>
+
+<!-- SIGNUP BUTTON -->
+<button id="signupBtn" onclick="signup()">
+    <span class="btn-text">Create Account</span>
+    <span class="loader"></span>
+</button>
+
+<hr style="margin:20px 0">
+
+<!-- SELLER -->
+<button onclick="sellerLogin()">Seller Login</button>
+
+</div>
+
+<script type="module" src="public/js/auth.js"></script>
+
+</body>
+</html>

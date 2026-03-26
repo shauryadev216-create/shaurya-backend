@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+
+<link rel="stylesheet" href="../public/css/Style.css">
+
+<style>
+
+body{
+    background:#f7f7f7;
+    font-family:'Inter', sans-serif;
+}
+
+/* MAIN CARD */
+.admin-container{
+    max-width:850px;
+    margin:50px auto;
+    background:#fff;
+    padding:35px;
+    border-radius:12px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.06);
+}
+
+/* INPUTS */
+.admin-container input,
+.admin-container textarea{
+    width:100%;
+    padding:14px;
+    margin-bottom:15px;
+    border:1px solid #e5e5e5;
+    border-radius:8px;
+    font-size:14px;
+}
+
+/* TYPE TOGGLE */
+.type-box{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.type-box label{
+    flex:1;
+    text-align:center;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    transition:all 0.25s;
+}
+
+.type-box input{
+    display:none;
+}
+
+.type-box input:checked + span{
+    background:#111;
+    color:#fff;
+    padding:12px;
+    border-radius:8px;
+}
+
+/* CATEGORY CHIPS */
+.category-box{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.category-box label{
+    padding:8px 14px;
+    border:1px solid #ddd;
+    border-radius:20px;
+    cursor:pointer;
+    font-size:13px;
+    transition:0.2s;
+}
+
+.category-box input{
+    display:none;
+}
+
+.category-box input:checked + span{
+    background:#111;
+    color:#fff;
+}
+
+/* BUTTON */
+.btn-save{
+    width:100%;
+    padding:16px;
+    background:#111;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    letter-spacing:1px;
+    transition:0.25s;
+}
+
+.btn-save:hover{
+    background:#444;
+}
+
+/* PRODUCT LIST */
+.admin-list{
+    max-width:850px;
+    margin:30px auto;
+}
+
+.admin-card{
+    background:#fff;
+    padding:18px;
+    border-radius:10px;
+    border:1px solid #eee;
+    margin-bottom:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+/* ACTION BUTTONS */
+.action-btn{
+    padding:8px 12px;
+    font-size:12px;
+    border:none;
+    cursor:pointer;
+    border-radius:6px;
+}
+
+.edit-btn{
+    background:#eaeaea;
+}
+
+.delete-btn{
+    background:#ff4d4d;
+    color:#fff;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="admin-container">
+
+<h2>Add Product</h2>
+
+<input id="title" placeholder="Product Title">
+<input id="price" placeholder="Price ($)">
+<textarea id="description" placeholder="Description"></textarea>
+
+<!-- 🔥 TYPE -->
+<div class="type-box">
+    <label>
+        <input type="radio" name="type" value="photo" checked>
+        <span>Photo</span>
+    </label>
+    <label>
+        <input type="radio" name="type" value="pack">
+        <span>Pack</span>
+    </label>
+</div>
+
+<!-- 🔥 CATEGORY -->
+<div class="category-box">
+
+<label><input type="checkbox" value="nature"><span>Nature</span></label>
+<label><input type="checkbox" value="cinematic"><span>Cinematic</span></label>
+<label><input type="checkbox" value="macro"><span>Macro</span></label>
+<label><input type="checkbox" value="bw"><span>B&W</span></label>
+<label><input type="checkbox" value="textures"><span>Textures</span></label>
+<label><input type="checkbox" value="portrait"><span>Portrait</span></label>
+<label><input type="checkbox" value="minimal"><span>Minimal</span></label>
+<label><input type="checkbox" value="abstract"><span>Abstract</span></label>
+
+</div>
+
+<input id="tags" placeholder="Tags (comma separated)">
+
+<p>Photo Cover</p>
+<input type="file" id="photoCover">
+
+<p>Photo HD</p>
+<input type="file" id="photoOriginal">
+
+<p>Pack Preview</p>
+<input type="file" id="packPreview" multiple>
+
+<p>Pack ZIP File</p>
+<input type="file" id="packZip">
+
+<button id="saveBtn" class="btn-save">Save Product</button>
+
+</div>
+
+<div class="admin-list">
+<h3>Products</h3>
+<div id="product-list-admin"></div>
+</div>
+
+<script src="admin.js"></script>
+
+</body>
+</html>

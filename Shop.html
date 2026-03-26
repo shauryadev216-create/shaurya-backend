@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Shop | Shaurya Dev</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="public/css/Style.css">
+
+<style>
+.search-box {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+}
+
+/* FILTER BAR (RESTORED STYLE) */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+    justify-content: center;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 20px;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    border-color: var(--text-main);
+    color: var(--text-main);
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+<div class="logo">SHAURYA DEV</div>
+<div class="nav-links">
+<a href="index.html">Home</a>
+<a href="gallery.html">Gallery</a>
+<a href="shop.html" class="active-link">Shop</a>
+<a href="about.html">About</a>
+</div>
+</nav>
+
+<!-- HERO -->
+<header class="shop-hero">
+<h1>Digital Collections.</h1>
+<p>
+Professionally crafted presets, textures, and visual assets<br>
+designed for modern storytellers.
+</p>
+</header>
+
+<!-- SHOP -->
+<section class="shop-section">
+
+<input id="searchBox" class="search-box" placeholder="Search products...">
+
+<div class="filter-bar">
+
+<button class="filter-btn" onclick="filterCategory('all')">All</button>
+
+<!-- 🔥 NEW TYPES -->
+<button class="filter-btn" onclick="filterCategory('pack')">Pack</button>
+<button class="filter-btn" onclick="filterCategory('photo')">Photo</button>
+
+<button class="filter-btn" onclick="filterCategory('nature')">Nature</button>
+<button class="filter-btn" onclick="filterCategory('cinematic')">Cinematic</button>
+<button class="filter-btn" onclick="filterCategory('macro')">Macro</button>
+<button class="filter-btn" onclick="filterCategory('bw')">B&W</button>
+
+</div>
+
+<div id="product-list" class="shop-grid"></div>
+
+</section>
+
+<!-- ✅ FOOTER RESTORED -->
+<footer class="site-footer">
+<p class="copyright">© 2026 Shaurya Dev. All rights reserved.</p>
+
+<p class="legal">
+Digital products are licensed for personal and educational use only.
+Unauthorized redistribution is prohibited.
+</p>
+
+<div class="footer-links">
+<a href="https://www.instagram.com/shaurya_visuals">Instagram</a>
+<span>·</span>
+<a href="shop.html">Shop</a>
+<span>·</span>
+<a href="https://mail.google.com/mail/?view=cm&fs=1&to=Shauryadev216@gmail.com">Contact</a>
+</div>
+
+<p class="contact-email">shauryadev216@gmail.com</p>
+</footer>
+
+<script src="public/js/products.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery | Shaurya Dev</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="public/css/Style.css">
+
+<style>
+.search-box {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+}
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1px solid #111;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+}
+</style>
+
+</head>
+<body>
+
+<nav class="navbar">
+<div class="logo">SHAURYA DEV</div>
+
+<div class="nav-links">
+<a href="index.html">Home</a>
+<a href="gallery.html" class="active-link">Gallery</a>
+<a href="shop.html">Shop</a>
+<a href="about.html">About</a>
+</div>
+</nav>
+
+<header class="page-header">
+<h1>Visual Archive.</h1>
+<p>A curated selection of natural light, textures, and quiet moments.</p>
+</header>
+
+<!-- 🔥 SEARCH + FILTER -->
+<section class="shop-section">
+
+<input id="searchBox" class="search-box" placeholder="Search images, categories, tags...">
+
+<div class="filter-bar">
+<button class="filter-btn" onclick="filterCategory('all')">All</button>
+<button class="filter-btn" onclick="filterCategory('nature')">Nature</button>
+<button class="filter-btn" onclick="filterCategory('cinematic')">Cinematic</button>
+<button class="filter-btn" onclick="filterCategory('macro')">Macro</button>
+<button class="filter-btn" onclick="filterCategory('bw')">B&W</button>
+<button class="filter-btn" onclick="filterCategory('textures')">Textures</button>
+<button class="filter-btn" onclick="filterCategory('lut')">LUTs</button>
+<button class="filter-btn" onclick="filterCategory('street')">Street</button>
+<button class="filter-btn" onclick="filterCategory('portrait')">Portrait</button>
+<button class="filter-btn" onclick="filterCategory('minimal')">Minimal</button>
+</div>
+
+<div class="gallery-grid" id="galleryGrid"></div>
+
+</section>
+
+<footer class="site-footer">
+
+<p class="copyright">
+© 2026 Shaurya Dev. All rights reserved.
+</p>
+
+<p class="legal">
+Digital products are licensed for personal and educational use only.
+Unauthorized redistribution is prohibited.
+</p>
+
+<div class="footer-links">
+<a href="https://www.instagram.com/shaurya_visuals">Instagram</a>
+<span>·</span>
+<a href="shop.html">Shop</a>
+<span>·</span>
+<a href="https://mail.google.com/mail/?view=cm&fs=1&to=Shauryadev216@gmail.com">
+Contact
+</a>
+</div>
+
+<p class="contact-email">
+shauryadev216@gmail.com
+</p>
+
+</footer>
+
+<script src="public/js/gallery.js"></script>
+
+</body>
+</html>
