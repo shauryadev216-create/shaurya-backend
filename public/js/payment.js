@@ -24,7 +24,7 @@ async function loadProduct(){
 
         console.log("All products:", products);
 
-        const product = products.find(p => String(p.id) === String(id));
+        const product = products.find(p => String(p._id) === String(id));
 
         console.log("Found product:", product);
 
