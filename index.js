@@ -12,11 +12,25 @@ app.use(express.json());
 // =========================
 // 🔥 MONGODB CONNECT
 // =========================
-mongoose.connect(
-    "mongoose.connect(process.env.MONGO_URI)"
-)
-.then(() => console.log("✅ MongoDB Connected"))
-.catch(err => console.error("❌ Mongo Error:", err));
+const startServer = async () => {
+    try {
+
+        await mongoose.connect(process.env.MONGO_URI);
+
+        console.log("✅ MongoDB Connected");
+
+        const PORT = process.env.PORT || 3000;
+
+        app.listen(PORT, () => {
+            console.log("🚀 Server running on port " + PORT);
+        });
+
+    } catch (err) {
+        console.error("❌ Mongo Connection Failed:", err);
+    }
+};
+
+startServer();
 
 // =========================
 // PRODUCT SCHEMA
@@ -169,6 +183,3 @@ app.post("/verify-payment", async (req, res) => {
 // =========================
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log("🚀 Server running on port " + PORT);
-});
