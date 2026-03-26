@@ -41,12 +41,22 @@ const Product = mongoose.model("Product", productSchema);
 // =========================
 app.post("/add-product", async (req, res) => {
     try {
+
+        console.log("Incoming product:", req.body);
+
         const product = new Product(req.body);
         await product.save();
+
         res.json({ success: true });
+
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false });
+
+        console.error("ADD PRODUCT ERROR:", err);
+
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
     }
 });
 
