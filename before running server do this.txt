@@ -1,0 +1,10 @@
+login-
+cashfree
+netlify
+razorpay
+
+download--
+node.js
+
+
+open cmd in server
