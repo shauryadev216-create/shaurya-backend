@@ -23,12 +23,12 @@ async function loadProduct(){
         console.log("URL ID:", id);
 
         const product = products.find(p => {
-    const mongoId = String(p._id);
-    const customId = String(p.id);
-    const urlId = String(id);
+            const mongoId = String(p._id);
+            const customId = String(p.id);
+            const urlId = String(id);
 
-    return mongoId === urlId || customId === urlId;
-});
+            return mongoId === urlId || customId === urlId;
+        });
 
         console.log("Found product:", product);
 
@@ -52,6 +52,8 @@ async function startPayment(product){
 
     try{
 
+        const finalId = product._id || product.id;
+
         const res = await fetch(API + "/create-order", {
             method: "POST",
             headers: {
@@ -59,7 +61,7 @@ async function startPayment(product){
             },
             body: JSON.stringify({
                 amount: product.price,
-                id: product._id // 🔥 FORCE _id
+                id: finalId
             })
         });
 
