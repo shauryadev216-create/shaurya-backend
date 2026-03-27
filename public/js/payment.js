@@ -1,37 +1,64 @@
+// =========================
+// CONFIG
+// =========================
 const API = "https://shaurya-backend.onrender.com";
 
+// =========================
+// GET PRODUCT ID FROM URL
+// =========================
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-async function start(){
+console.log("👉 URL ID:", id);
 
-    console.log("ID:", id);
+if (!id) {
+    alert("No product ID in URL");
+    throw new Error("Missing ID");
+}
 
-    if(!id){
-        alert("No ID");
-        return;
-    }
+// =========================
+// LOAD PRODUCT FROM SERVER
+// =========================
+async function loadProduct() {
 
-    try{
-        // 🔥 STEP 1: GET PRODUCT
+    try {
         const res = await fetch(API + "/products");
-        const products = await res.json();
 
-        const cleanId = id.trim();
-
-const product = products.find(p => {
-    return p._id.includes(cleanId) || cleanId.includes(p._id);
-});
-
-        console.log("PRODUCT:", product);
-
-        if(!product){
-            alert("Product not found");
-            return;
+        if (!res.ok) {
+            throw new Error("Failed to fetch products");
         }
 
-        // 🔥 STEP 2: CREATE ORDER
-        const orderRes = await fetch(API + "/create-order", {
+        const products = await res.json();
+
+        console.log("📦 All Products:", products);
+
+        const product = products.find(p => String(p._id) === String(id));
+
+        console.log("🎯 Found Product:", product);
+
+        if (!product) {
+            alert("Product not found");
+            throw new Error("Product not found");
+        }
+
+        startPayment(product);
+
+    } catch (err) {
+        console.error("❌ LOAD ERROR:", err);
+        alert("Error loading product");
+    }
+}
+
+// =========================
+// CREATE ORDER + PAYMENT
+// =========================
+async function startPayment(product) {
+
+    try {
+
+        console.log("💰 Starting payment for:", product);
+
+        const res = await fetch(API + "/create-order", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -42,16 +69,24 @@ const product = products.find(p => {
             })
         });
 
-        const data = await orderRes.json();
+        const data = await res.json();
 
-        console.log("ORDER:", data);
+        console.log("🧾 ORDER RESPONSE:", data);
 
-        if(!data.payment_session_id){
-            alert("Payment failed");
-            return;
+        // 🔥 SHOW REAL ERROR FROM BACKEND
+        if (!res.ok) {
+            alert("Backend Error: " + JSON.stringify(data));
+            throw new Error("Order failed");
         }
 
-        // 🔥 STEP 3: CASHFREE
+        if (!data.payment_session_id) {
+            alert("No payment session ID received");
+            throw new Error("Invalid response");
+        }
+
+        // =========================
+        // CASHFREE CHECKOUT
+        // =========================
         const cashfree = Cashfree({
             mode: "sandbox"
         });
@@ -61,10 +96,13 @@ const product = products.find(p => {
             redirectTarget: "_self"
         });
 
-    }catch(err){
-        console.error(err);
-        alert("Error");
+    } catch (err) {
+        console.error("❌ PAYMENT ERROR:", err);
+        alert("Payment failed");
     }
 }
 
-document.addEventListener("DOMContentLoaded", start);
+// =========================
+// INIT
+// =========================
+loadProduct();
