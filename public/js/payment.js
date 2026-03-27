@@ -9,9 +9,6 @@ const API = "https://shaurya-backend.onrender.com";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-// 🔥 (optional) mark pending
-localStorage.setItem("pending_payment_" + id, "true");
-
 // =========================
 // LOAD PRODUCT FROM SERVER
 // =========================
@@ -23,9 +20,10 @@ async function loadProduct(){
         const products = await res.json();
 
         console.log("All products:", products);
+        console.log("URL ID:", id);
 
+        // 🔥 FORCE _id MATCH ONLY
         const product = products.find(p =>
-            String(p.id) === String(id) ||
             String(p._id) === String(id)
         );
 
@@ -51,9 +49,6 @@ async function startPayment(product){
 
     try{
 
-        // ✅ FINAL FIX (important)
-        const finalId = product.id || product._id;
-
         const res = await fetch(API + "/create-order", {
             method: "POST",
             headers: {
@@ -61,7 +56,7 @@ async function startPayment(product){
             },
             body: JSON.stringify({
                 amount: product.price,
-                id: finalId
+                id: product._id // 🔥 FORCE _id
             })
         });
 
