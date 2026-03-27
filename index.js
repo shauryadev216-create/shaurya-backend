@@ -115,7 +115,7 @@ app.post("/create-order", async (req, res) => {
     try {
 
         const response = await axios.post(
-            "https://api.cashfree.com/pg/orders",
+            "https://sandbox.cashfree.com/pg/orders",
             {
                 order_amount: Number(amount),
                 order_currency: "INR",
@@ -157,20 +157,17 @@ app.post("/verify-payment", async (req, res) => {
 
     try {
 
-        const response = await axios.get(
-            `https://api.cashfree.com/pg/orders/${order_id}`,
-            {
-                headers: {
-                    "x-client-id": APP_ID,
-                    "x-client-secret": SECRET_KEY,
-                    "x-api-version": "2022-09-01"
-                }
-            }
-        );
-
-        res.json({
-            success: response.data.order_status === "PAID"
-        });
+        // VERIFY PAYMENT
+const response = await axios.get(
+    `https://sandbox.cashfree.com/pg/orders/${order_id}`,
+    {
+        headers: {
+            "x-client-id": APP_ID,
+            "x-client-secret": SECRET_KEY,
+            "x-api-version": "2022-09-01"
+        }
+    }
+);
 
     } catch (err) {
         console.error(err);
