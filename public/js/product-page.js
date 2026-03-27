@@ -89,8 +89,9 @@ async function loadProduct() {
             } else {
                 buyBtn.textContent = "Buy Now";
                 buyBtn.onclick = () => {
-                    window.location.href = "payment.html?id=" + product._id;
-                };
+    const correctId = product._id || product.id;
+    window.location.href = "payment.html?id=" + correctId;
+};
             }
         }
 
