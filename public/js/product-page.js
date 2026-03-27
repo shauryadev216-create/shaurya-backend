@@ -1,157 +1,80 @@
-
-console.log("JS LOADED SUCCESSFULLY 🚀");
-
-// =========================
-// CONFIG
-// =========================
 const API = "https://shaurya-backend.onrender.com";
 
-// =========================
-// GET URL PARAMS
-// =========================
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-const orderId = params.get("order_id");
+let allProducts = [];
+let currentFilter = "all";
 
-// =========================
-// LOAD PRODUCT FROM SERVER
-// =========================
-async function loadProduct() {
+function safeCategory(cat){
+    if(!cat) return [];
+    return Array.isArray(cat) ? cat : [cat];
+}
 
-    // 🚨 DEBUG
-    console.log("Product ID from URL:", id);
-
-    if (!id) {
-        document.body.innerHTML = "<h1>No Product ID</h1>";
-        return;
-    }
-
-    try {
+async function loadProducts(){
+    try{
         const res = await fetch(API + "/products");
+        const data = await res.json();
 
-        // 🚨 CHECK RESPONSE
-        if (!res.ok) {
-            throw new Error("API failed");
-        }
+        allProducts = data;
+        applyFilters();
 
-        const products = await res.json();
-
-        console.log("All products:", products);
-
-        // ✅ FIXED MATCH (handles both id and _id)
-        const product = products.find(p => String(p._id) === String(id));
-
-        console.log("Found product:", product);
-
-        if (!product) {
-            document.body.innerHTML = "<h1>Product Not Found</h1>";
-            return;
-        }
-
-        // =========================
-        // SET DATA
-        // =========================
-        document.getElementById("title").textContent = product.title || "No title";
-        document.getElementById("description").textContent = product.description || "No description";
-        document.getElementById("price").textContent = "$" + (product.price || 0);
-
-        // =========================
-        // IMAGE FIX
-        // =========================
-        let image = product.type === "photo"
-            ? product.cover
-            : (product.preview?.[0] || product.cover);
-
-        const mainImage = document.getElementById("mainImage");
-
-        if (image && image.startsWith("http")) {
-            mainImage.src = image;
-        } else {
-            mainImage.src = "https://via.placeholder.com/400";
-        }
-
-        const lightbox = document.getElementById("lightboxImg");
-        if (lightbox) {
-            lightbox.src = mainImage.src;
-        }
-
-        // =========================
-        // BUTTON LOGIC
-        // =========================
-        const buyBtn = document.getElementById("buyBtn");
-
-        function updateButton() {
-            const purchased = localStorage.getItem("purchased_" + id);
-
-            if (purchased === "true") {
-                buyBtn.textContent = "Download";
-                buyBtn.onclick = downloadProduct;
-            } else {
-                buyBtn.textContent = "Buy Now";
-                buyBtn.onclick = () => {
-    const correctId = product._id || product.id;
-    window.location.href = "payment.html?id=" + correctId;
-};
-            }
-        }
-
-        // =========================
-        // VERIFY PAYMENT
-        // =========================
-        async function verifyPayment() {
-
-            if (!orderId) {
-                updateButton();
-                return;
-            }
-
-            try {
-                const res = await fetch(API + "/verify-payment", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ order_id: orderId })
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    localStorage.setItem("purchased_" + id, "true");
-                }
-
-            } catch (err) {
-                console.error("Verify failed", err);
-            }
-
-            updateButton();
-        }
-
-        verifyPayment();
-
-        // =========================
-        // DOWNLOAD
-        // =========================
-        function downloadProduct() {
-
-            if (product.type === "photo") {
-                window.open(product.original || product.cover);
-            } else {
-                window.open(product.zip);
-            }
-        }
-
-    } catch (err) {
-        console.error("LOAD ERROR:", err);
-        document.body.innerHTML = "<h1>Error loading product</h1>";
+    }catch(err){
+        console.error(err);
     }
 }
 
-// =========================
-// INIT
-// =========================
-loadProduct();
+function renderProducts(list){
+    const container = document.getElementById("product-list");
+    container.innerHTML = "";
 
-console.log("URL ID:", id);
+    if(list.length === 0){
+        container.innerHTML = "<p>No products</p>";
+        return;
+    }
 
-products.forEach(p => {
-    console.log("DB ID:", p._id);
+    list.forEach(p=>{
+        const div = document.createElement("div");
+
+        div.innerHTML = `
+            <img src="${p.cover}" width="200">
+            <h3>${p.title}</h3>
+            <p>$${p.price}</p>
+            <a href="product-template.html?id=${p._id}">View</a>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+function applyFilters(){
+    let filtered = [...allProducts];
+
+    const search = document.getElementById("searchBox");
+    const query = search ? search.value.toLowerCase() : "";
+
+    if(query){
+        filtered = filtered.filter(p =>
+            p.title.toLowerCase().includes(query)
+        );
+    }
+
+    if(currentFilter !== "all"){
+        filtered = filtered.filter(p =>
+            safeCategory(p.category).includes(currentFilter)
+        );
+    }
+
+    renderProducts(filtered);
+}
+
+function filterCategory(cat){
+    currentFilter = cat;
+    applyFilters();
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+    loadProducts();
+
+    const search = document.getElementById("searchBox");
+    if(search){
+        search.addEventListener("input", applyFilters);
+    }
 });
