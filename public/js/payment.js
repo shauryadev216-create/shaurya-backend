@@ -17,7 +17,11 @@ async function start(){
         const res = await fetch(API + "/products");
         const products = await res.json();
 
-        const product = products.find(p => String(p._id) === String(id));
+        const cleanId = id.trim();
+
+const product = products.find(p => {
+    return p._id.includes(cleanId) || cleanId.includes(p._id);
+});
 
         console.log("PRODUCT:", product);
 
