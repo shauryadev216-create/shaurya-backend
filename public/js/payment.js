@@ -9,31 +9,26 @@ const API = "https://shaurya-backend.onrender.com";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
+console.log("URL ID:", id);
+
 // =========================
 // LOAD PRODUCT FROM SERVER
 // =========================
 async function loadProduct(){
 
     try{
-
         const res = await fetch(API + "/products");
         const products = await res.json();
 
         console.log("All products:", products);
-        console.log("URL ID:", id);
 
-        const product = products.find(p => {
-            const mongoId = String(p._id);
-            const customId = String(p.id);
-            const urlId = String(id);
+        // 🔥 ONLY MATCH _id
+        const product = products.find(p => String(p._id) === String(id));
 
-            return mongoId === urlId || customId === urlId;
-        });
-
-        console.log("Found product:", product);
+        console.log("Matched product:", product);
 
         if(!product){
-            alert("Product not found");
+            alert("❌ Product not found");
             throw new Error("No product");
         }
 
@@ -51,9 +46,6 @@ async function loadProduct(){
 async function startPayment(product){
 
     try{
-
-        const finalId = product._id || product.id;
-
         const res = await fetch(API + "/create-order", {
             method: "POST",
             headers: {
@@ -61,7 +53,7 @@ async function startPayment(product){
             },
             body: JSON.stringify({
                 amount: product.price,
-                id: finalId
+                id: product._id   // 🔥 ALWAYS _id
             })
         });
 
