@@ -22,10 +22,13 @@ async function loadProduct(){
         console.log("All products:", products);
         console.log("URL ID:", id);
 
-        // 🔥 FORCE _id MATCH ONLY
-        const product = products.find(p =>
-            String(p._id) === String(id)
-        );
+        const product = products.find(p => {
+    const mongoId = String(p._id);
+    const customId = String(p.id);
+    const urlId = String(id);
+
+    return mongoId === urlId || customId === urlId;
+});
 
         console.log("Found product:", product);
 
