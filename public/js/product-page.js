@@ -148,3 +148,9 @@ async function loadProduct() {
 // INIT
 // =========================
 loadProduct();
+
+console.log("URL ID:", id);
+
+products.forEach(p => {
+    console.log("DB ID:", p._id);
+});
