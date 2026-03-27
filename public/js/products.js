@@ -33,12 +33,23 @@ function renderProducts(list){
     list.forEach(p=>{
         const div = document.createElement("div");
 
-        div.innerHTML = `
-            <img src="${p.cover}" width="200">
-            <h3>${p.title}</h3>
-            <p>$${p.price}</p>
-            <a href="product-template.html?id=${p._id}">View</a>
-        `;
+        div.className = "shop-card";
+
+div.innerHTML = `
+    <div class="shop-image">
+        <img src="${p.cover || "https://via.placeholder.com/300"}">
+    </div>
+
+    <div class="shop-content">
+        <span class="shop-tag">${p.type || "product"}</span>
+        <h3>${p.title}</h3>
+        <p>$${p.price}</p>
+
+        <div class="shop-footer">
+            <a href="product-template.html?id=${p._id}" class="btn-buy">View</a>
+        </div>
+    </div>
+`;
 
         container.appendChild(div);
     });
