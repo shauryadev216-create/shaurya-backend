@@ -120,18 +120,21 @@ app.post("/create-order", async (req, res) => {
                 order_amount: Number(amount),
                 order_currency: "INR",
                 order_id: orderId,
+
                 customer_details: {
                     customer_id: "user_" + Date.now(),
-                    customer_phone: "9999999999"
+                    customer_phone: "9999999999",
+                    customer_email: "test@gmail.com"   // ✅ REQUIRED FIX
                 },
+
                 order_meta: {
-                    return_url: `https://YOUR_NETLIFY_URL/product-template.html?id=${id}&order_id=${orderId}`
+                    return_url: `https://lucky-travesseiro-1da1a0.netlify.app/product-template.html?id=${id}&order_id=${orderId}`
                 }
             },
             {
                 headers: {
-                    "x-client-id": APP_ID,
-                    "x-client-secret": SECRET_KEY,
+                    "x-client-id": process.env.APP_ID,
+                    "x-client-secret": process.env.SECRET_KEY,
                     "x-api-version": "2022-09-01",
                     "Content-Type": "application/json"
                 }
@@ -143,8 +146,14 @@ app.post("/create-order", async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err.response?.data || err.message);
-        res.status(500).json({ error: "Order failed" });
+
+        console.error("❌ CASHFREE ERROR:");
+        console.error(err.response?.data || err.message); // 🔥 IMPORTANT LOG
+
+        res.status(500).json({
+            error: "Order failed",
+            details: err.response?.data || err.message
+        });
     }
 });
 
