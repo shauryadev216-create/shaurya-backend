@@ -6,6 +6,9 @@ const orderId = params.get("order_id");
 
 let productData = null;
 
+// =========================
+// LOAD PRODUCT
+// =========================
 async function loadProduct(){
     try{
         const res = await fetch(API + "/products");
@@ -26,15 +29,16 @@ async function loadProduct(){
         const img = document.getElementById("mainImage");
         const btn = document.getElementById("buyBtn");
 
+        // SET DATA
         if(title) title.textContent = product.title;
         if(desc) desc.textContent = product.description || "";
         if(price) price.textContent = "$" + product.price;
         if(img) img.src = product.cover;
 
-        // 🔥 VERIFY PAYMENT AFTER REDIRECT
+        // 🔥 VERIFY PAYMENT FIRST
         await verifyPayment();
 
-        // 🔥 UPDATE BUTTON AFTER VERIFY
+        // 🔥 THEN UPDATE BUTTON
         updateButton(btn);
 
     }catch(err){
@@ -63,14 +67,18 @@ async function verifyPayment(){
 
         const data = await res.json();
 
-        console.log("VERIFY:", data);
+        console.log("VERIFY RESULT:", data);
 
         if(data.success){
-            // ✅ SAVE PURCHASE
+            // ✅ MARK AS PURCHASED
             localStorage.setItem("purchased_" + id, "true");
 
-            // 🔥 CLEAN URL (remove order_id)
-            window.history.replaceState({}, document.title, "product-template.html?id=" + id);
+            // 🔥 REMOVE order_id FROM URL (VERY IMPORTANT)
+            window.history.replaceState(
+                {},
+                document.title,
+                "product-template.html?id=" + id
+            );
         }
 
     }catch(err){
@@ -97,7 +105,7 @@ function updateButton(btn){
 }
 
 // =========================
-// DOWNLOAD WITH PRODUCT NAME
+// DOWNLOAD FUNCTION
 // =========================
 function downloadProduct(){
 
@@ -115,9 +123,13 @@ function downloadProduct(){
     const link = document.createElement("a");
     link.href = fileUrl;
 
-    // 🔥 FILE NAME = PRODUCT TITLE
+    // 🔥 CLEAN FILE NAME
     const ext = fileUrl.split(".").pop();
-    link.download = (productData.title || "download") + "." + ext;
+    const cleanName = (productData.title || "download")
+        .replace(/[^\w\s]/gi, "")
+        .replace(/\s+/g, "_");
+
+    link.download = cleanName + "." + ext;
 
     document.body.appendChild(link);
     link.click();
