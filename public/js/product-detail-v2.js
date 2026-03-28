@@ -1,29 +1,32 @@
 const API = "https://shaurya-backend.onrender.com";
 
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-const orderId = params.get("order_id");
+document.addEventListener("DOMContentLoaded", async () => {
 
-let productData = null;
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const orderId = params.get("order_id");
 
-// =========================
-// LOAD PRODUCT
-// =========================
-async function loadProduct(){
-    try{
+    let productData = null;
+
+    console.log("PAGE LOADED, ID:", id);
+
+    // =========================
+    // LOAD PRODUCT
+    // =========================
+    try {
         const res = await fetch(API + "/products");
         const products = await res.json();
 
         const product = products.find(p => String(p._id) === String(id));
 
-        if(!product){
+        if (!product) {
             document.body.innerHTML = "<h1>Product Not Found</h1>";
             return;
         }
 
         productData = product;
 
-        // UI
+        // UI SET
         document.getElementById("title").textContent = product.title;
         document.getElementById("description").textContent = product.description || "";
         document.getElementById("price").textContent = "$" + product.price;
@@ -31,92 +34,88 @@ async function loadProduct(){
 
         const btn = document.getElementById("buyBtn");
 
-        // 🔥 IF RETURNED FROM PAYMENT → VERIFY + DOWNLOAD
-        if(orderId){
-            await verifyAndDownload();
+        console.log("BUTTON FOUND:", btn);
+
+        // =========================
+        // VERIFY PAYMENT (AUTO)
+        // =========================
+        if (orderId) {
+            await verifyAndDownload(id, orderId, productData);
         }
 
-        // 🔥 ALWAYS KEEP BUTTON WORKING
-        setupButton(btn);
+        // =========================
+        // BUTTON SETUP (FORCE)
+        // =========================
+        const purchased = localStorage.getItem("purchased_" + id);
 
-    }catch(err){
-        console.error(err);
+        if (purchased === "true") {
+            btn.textContent = "Download";
+            btn.onclick = () => downloadProduct(productData);
+        } else {
+            btn.textContent = "Buy Now";
+
+            btn.addEventListener("click", () => {
+                console.log("BUY BUTTON CLICKED");
+                window.location.href = "payment.html?id=" + id;
+            });
+        }
+
+    } catch (err) {
+        console.error("LOAD ERROR:", err);
         document.body.innerHTML = "<h1>Error loading product</h1>";
     }
-}
-
-// =========================
-// BUTTON LOGIC
-// =========================
-function setupButton(btn){
-
-    const purchased = localStorage.getItem("purchased_" + id);
-
-    if(purchased === "true"){
-        btn.textContent = "Download";
-        btn.onclick = downloadProduct;
-    }else{
-        btn.textContent = "Buy Now";
-        btn.onclick = () => {
-            window.location.href = "payment.html?id=" + id;
-        };
-    }
-}
+});
 
 // =========================
 // VERIFY + AUTO DOWNLOAD
 // =========================
-async function verifyAndDownload(){
+async function verifyAndDownload(id, orderId, productData) {
 
-    try{
-        const res = await fetch(API + "/verify-payment", {
+    try {
+        const res = await fetch("https://shaurya-backend.onrender.com/verify-payment", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                order_id: orderId
-            })
+            body: JSON.stringify({ order_id: orderId })
         });
 
         const data = await res.json();
 
         console.log("VERIFY RESULT:", data);
 
-        if(data.success){
-
-            alert("✅ Payment successful! Download starting...");
+        if (data.success) {
 
             localStorage.setItem("purchased_" + id, "true");
+
+            alert("✅ Payment successful! Download starting...");
 
             // Clean URL
             window.history.replaceState({}, document.title, "product-template.html?id=" + id);
 
-            // Auto download
-            downloadProduct();
+            downloadProduct(productData);
 
-        }else{
-            alert("❌ Payment verification failed");
+        } else {
+            console.log("❌ Verification failed");
         }
 
-    }catch(err){
-        console.error(err);
-        alert("Error verifying payment");
+    } catch (err) {
+        console.error("VERIFY ERROR:", err);
     }
 }
 
 // =========================
 // DOWNLOAD
 // =========================
-function downloadProduct(){
+function downloadProduct(productData) {
 
-    if(!productData) return;
+    if (!productData) return;
 
     let fileUrl = productData.type === "photo"
         ? (productData.original || productData.cover)
         : productData.zip;
 
-    if(!fileUrl){
+    if (!fileUrl) {
         alert("No file available");
         return;
     }
@@ -125,18 +124,11 @@ function downloadProduct(){
     link.href = fileUrl;
 
     const ext = fileUrl.split(".").pop();
-    const cleanName = (productData.title || "download")
-        .replace(/[^\w\s]/gi, "")
-        .replace(/\s+/g, "_");
+    const name = productData.title.replace(/\s+/g, "_");
 
-    link.download = cleanName + "." + ext;
+    link.download = name + "." + ext;
 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
-
-// =========================
-// INIT
-// =========================
-loadProduct();
