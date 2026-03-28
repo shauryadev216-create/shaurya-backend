@@ -2,6 +2,9 @@ const API = "https://shaurya-backend.onrender.com";
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
+const orderId = params.get("order_id");
+
+let productData = null;
 
 async function loadProduct(){
     try{
@@ -15,6 +18,8 @@ async function loadProduct(){
             return;
         }
 
+        productData = product;
+
         const title = document.getElementById("title");
         const desc = document.getElementById("description");
         const price = document.getElementById("price");
@@ -26,11 +31,11 @@ async function loadProduct(){
         if(price) price.textContent = "$" + product.price;
         if(img) img.src = product.cover;
 
-        if(btn){
-            btn.onclick = () => {
-                window.location.href = "payment.html?id=" + product._id;
-            };
-        }
+        // 🔥 VERIFY PAYMENT AFTER REDIRECT
+        await verifyPayment();
+
+        // 🔥 UPDATE BUTTON AFTER VERIFY
+        updateButton(btn);
 
     }catch(err){
         console.error(err);
@@ -38,4 +43,88 @@ async function loadProduct(){
     }
 }
 
+// =========================
+// VERIFY PAYMENT
+// =========================
+async function verifyPayment(){
+
+    if(!orderId) return;
+
+    try{
+        const res = await fetch(API + "/verify-payment", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                order_id: orderId
+            })
+        });
+
+        const data = await res.json();
+
+        console.log("VERIFY:", data);
+
+        if(data.success){
+            // ✅ SAVE PURCHASE
+            localStorage.setItem("purchased_" + id, "true");
+
+            // 🔥 CLEAN URL (remove order_id)
+            window.history.replaceState({}, document.title, "product-template.html?id=" + id);
+        }
+
+    }catch(err){
+        console.error("Verify error:", err);
+    }
+}
+
+// =========================
+// BUTTON LOGIC
+// =========================
+function updateButton(btn){
+
+    const purchased = localStorage.getItem("purchased_" + id);
+
+    if(purchased === "true"){
+        btn.textContent = "Download";
+        btn.onclick = downloadProduct;
+    }else{
+        btn.textContent = "Buy Now";
+        btn.onclick = () => {
+            window.location.href = "payment.html?id=" + id;
+        };
+    }
+}
+
+// =========================
+// DOWNLOAD WITH PRODUCT NAME
+// =========================
+function downloadProduct(){
+
+    if(!productData) return;
+
+    let fileUrl = productData.type === "photo"
+        ? (productData.original || productData.cover)
+        : productData.zip;
+
+    if(!fileUrl){
+        alert("No file available");
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.href = fileUrl;
+
+    // 🔥 FILE NAME = PRODUCT TITLE
+    const ext = fileUrl.split(".").pop();
+    link.download = (productData.title || "download") + "." + ext;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// =========================
+// INIT
+// =========================
 loadProduct();
