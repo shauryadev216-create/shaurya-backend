@@ -1,25 +1,22 @@
 const API = "https://shaurya-backend.onrender.com";
 
-document.addEventListener("DOMContentLoaded", async () => {
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+const orderId = params.get("order_id");
 
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
-    const orderId = params.get("order_id");
+let productData = null;
 
-    let productData = null;
-
-    console.log("PAGE LOADED, ID:", id);
-
-    // =========================
-    // LOAD PRODUCT
-    // =========================
-    try {
+// =========================
+// LOAD PRODUCT
+// =========================
+async function loadProduct(){
+    try{
         const res = await fetch(API + "/products");
         const products = await res.json();
 
         const product = products.find(p => String(p._id) === String(id));
 
-        if (!product) {
+        if(!product){
             document.body.innerHTML = "<h1>Product Not Found</h1>";
             return;
         }
@@ -34,89 +31,82 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const btn = document.getElementById("buyBtn");
 
-        console.log("BUTTON FOUND:", btn);
+        console.log("BUTTON:", btn);
 
-        // =========================
-        // VERIFY PAYMENT (AUTO)
-        // =========================
-        if (orderId) {
-            await verifyAndDownload(id, orderId, productData);
+        // 🔥 PAYMENT RETURN FLOW
+        if(orderId){
+            await verifyAndDownload();
         }
 
-        // =========================
-        // BUTTON SETUP (FORCE)
-        // =========================
+        // 🔥 BUTTON LOGIC (THIS WAS MISSING)
         const purchased = localStorage.getItem("purchased_" + id);
 
-        if (purchased === "true") {
+        if(purchased === "true"){
             btn.textContent = "Download";
-            btn.onclick = () => downloadProduct(productData);
-        } else {
+            btn.onclick = downloadProduct;
+        }else{
             btn.textContent = "Buy Now";
-
-            btn.addEventListener("click", () => {
-                console.log("BUY BUTTON CLICKED");
+            btn.onclick = () => {
+                console.log("CLICK WORKING");
                 window.location.href = "payment.html?id=" + id;
-            });
+            };
         }
 
-    } catch (err) {
-        console.error("LOAD ERROR:", err);
+    }catch(err){
+        console.error(err);
         document.body.innerHTML = "<h1>Error loading product</h1>";
     }
-});
+}
 
 // =========================
-// VERIFY + AUTO DOWNLOAD
+// VERIFY PAYMENT
 // =========================
-async function verifyAndDownload(id, orderId, productData) {
+async function verifyAndDownload(){
 
-    try {
-        const res = await fetch("https://shaurya-backend.onrender.com/verify-payment", {
+    try{
+        const res = await fetch(API + "/verify-payment", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ order_id: orderId })
+            body: JSON.stringify({
+                order_id: orderId
+            })
         });
 
         const data = await res.json();
 
-        console.log("VERIFY RESULT:", data);
+        console.log("VERIFY:", data);
 
-        if (data.success) {
+        if(data.success){
 
             localStorage.setItem("purchased_" + id, "true");
 
-            alert("✅ Payment successful! Download starting...");
+            alert("Payment successful! Download starting...");
 
-            // Clean URL
             window.history.replaceState({}, document.title, "product-template.html?id=" + id);
 
-            downloadProduct(productData);
-
-        } else {
-            console.log("❌ Verification failed");
+            downloadProduct();
         }
 
-    } catch (err) {
-        console.error("VERIFY ERROR:", err);
+    }catch(err){
+        console.error(err);
     }
 }
 
 // =========================
 // DOWNLOAD
 // =========================
-function downloadProduct(productData) {
+function downloadProduct(){
 
-    if (!productData) return;
+    if(!productData) return;
 
     let fileUrl = productData.type === "photo"
         ? (productData.original || productData.cover)
         : productData.zip;
 
-    if (!fileUrl) {
-        alert("No file available");
+    if(!fileUrl){
+        alert("No file found");
         return;
     }
 
@@ -132,3 +122,8 @@ function downloadProduct(productData) {
     link.click();
     document.body.removeChild(link);
 }
+
+// =========================
+// INIT
+// =========================
+loadProduct();
