@@ -23,20 +23,43 @@ async function loadProduct(){
 
         productData = product;
 
-        // UI SET
+        // UI
         document.getElementById("title").textContent = product.title;
         document.getElementById("description").textContent = product.description || "";
         document.getElementById("price").textContent = "$" + product.price;
         document.getElementById("mainImage").src = product.cover;
 
-        // 🔥 IF RETURNED FROM PAYMENT → VERIFY + AUTO DOWNLOAD
+        const btn = document.getElementById("buyBtn");
+
+        // 🔥 IF RETURNED FROM PAYMENT → VERIFY + DOWNLOAD
         if(orderId){
             await verifyAndDownload();
         }
 
+        // 🔥 ALWAYS KEEP BUTTON WORKING
+        setupButton(btn);
+
     }catch(err){
         console.error(err);
         document.body.innerHTML = "<h1>Error loading product</h1>";
+    }
+}
+
+// =========================
+// BUTTON LOGIC
+// =========================
+function setupButton(btn){
+
+    const purchased = localStorage.getItem("purchased_" + id);
+
+    if(purchased === "true"){
+        btn.textContent = "Download";
+        btn.onclick = downloadProduct;
+    }else{
+        btn.textContent = "Buy Now";
+        btn.onclick = () => {
+            window.location.href = "payment.html?id=" + id;
+        };
     }
 }
 
@@ -62,15 +85,14 @@ async function verifyAndDownload(){
 
         if(data.success){
 
-            alert("✅ Payment Successful! Download starting...");
+            alert("✅ Payment successful! Download starting...");
 
-            // 🔥 SAVE PURCHASE
             localStorage.setItem("purchased_" + id, "true");
 
-            // 🔥 CLEAN URL
+            // Clean URL
             window.history.replaceState({}, document.title, "product-template.html?id=" + id);
 
-            // 🔥 AUTO DOWNLOAD
+            // Auto download
             downloadProduct();
 
         }else{
@@ -78,13 +100,13 @@ async function verifyAndDownload(){
         }
 
     }catch(err){
-        console.error("Verify error:", err);
+        console.error(err);
         alert("Error verifying payment");
     }
 }
 
 // =========================
-// DOWNLOAD FUNCTION
+// DOWNLOAD
 // =========================
 function downloadProduct(){
 
@@ -102,7 +124,6 @@ function downloadProduct(){
     const link = document.createElement("a");
     link.href = fileUrl;
 
-    // 🔥 CLEAN FILE NAME
     const ext = fileUrl.split(".").pop();
     const cleanName = (productData.title || "download")
         .replace(/[^\w\s]/gi, "")
