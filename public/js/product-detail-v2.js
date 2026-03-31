@@ -103,17 +103,45 @@ function showDownloadUI() {
 }
 
 // ==========================
-// DOWNLOAD FILE
+// DOWNLOAD FILE (🔥 FIXED)
 // ==========================
 function startDownload() {
 
-    if (!productData || !productData.zip) {
-        alert("Download not available");
+    if (!productData) {
+        alert("❌ Product not loaded");
         return;
     }
 
+    let fileUrl = "";
+
+    // 📸 PHOTO MODE → DOWNLOAD ORIGINAL IMAGE
+    if (productData.type === "photo") {
+        if (productData.original) {
+            fileUrl = productData.original;
+        } else {
+            alert("❌ Original image missing!");
+            return;
+        }
+    }
+
+    // 📦 PACK MODE → DOWNLOAD ZIP
+    else if (productData.type === "pack") {
+        if (productData.zip) {
+            fileUrl = productData.zip;
+        } else {
+            alert("❌ ZIP file missing!");
+            return;
+        }
+    }
+
+    else {
+        alert("❌ Invalid product type");
+        return;
+    }
+
+    // 🔽 DOWNLOAD
     const link = document.createElement("a");
-    link.href = productData.zip;
+    link.href = fileUrl;
     link.download = productData.title;
 
     document.body.appendChild(link);
