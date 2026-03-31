@@ -51,7 +51,7 @@ window.googleLogin = async function () {
         const email = result.user.email;
 
         // 🔥 SAVE USER
-        localStorage.setItem("userEmail", email);
+        const email = localStorage.getItem("userEmail");
 
         alert("Google login success");
         window.location.href = "/dashboard.html";

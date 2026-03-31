@@ -2,12 +2,13 @@ const API = "https://shaurya-backend.onrender.com";
 
 async function loadPurchases(){
 
-    const email = document.getElementById("emailInput").value;
+    const email = localStorage.getItem("userEmail");
 
-    if(!email){
-        alert("Enter email");
-        return;
-    }
+if(!email){
+    alert("Please login first");
+    window.location.href = "/login.html";
+    return;
+}
 
     try{
 
@@ -89,3 +90,4 @@ function downloadProduct(product){
         window.URL.revokeObjectURL(blobUrl);
     });
 }
+document.addEventListener("DOMContentLoaded", loadPurchases);
