@@ -93,7 +93,7 @@ app.post("/create-order", async (req, res) => {
                     customer_phone: "9999999999"
                 },
                 order_meta: {
-                    return_url: `https://lucky-travesseiro-1da1a0.netlify.app/product-template.html?id=${id}&order_id=${orderId}`
+                    return_url: `https://verdant-speculoos-e2aac1.netlify.app/product-template.html?id=${id}&order_id=${orderId}`
                 }
             },
             {
