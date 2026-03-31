@@ -8,8 +8,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
+  apiKey: "AIzaSyDmS8L-Wn85RnA5CUxMo9uzKwehcUJjsHM",
+  authDomain: "shaurya-dev-project.firebaseapp.com",
 };
 
 const app = initializeApp(firebaseConfig);
