@@ -16,10 +16,16 @@
     <!-- NAVBAR -->
     <nav class="navbar">
         <div class="logo">SHAURYA DEV</div>
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
+
             <a href="gallery.html">Gallery</a>
             <a href="shop.html">Shop</a>
             <a href="about.html">About</a>
+
+            <!-- 🔥 ADDED (ONLY THIS PART) -->
+            <a href="login.html" id="loginBtn">Login</a>
+            <a href="signup.html" id="signupBtn">Sign Up</a>
+
         </div>
     </nav>
 
@@ -32,7 +38,6 @@
             Cinematic presets, textures, and grading tools.
         </p>
 
-        <!-- HERO CTA (FIXED) -->
         <div class="hero-buttons fade-in">
             <a href="Shop.html" class="btn-primary">View Collections</a>
         </div>
@@ -58,9 +63,8 @@
     <section class="products">
         <h2 class="section-title">Latest Collections</h2>
         
-      <div id="home-products" class="product-grid"></div>
+        <div id="home-products" class="product-grid"></div>
 
-        <!-- COLLECTIONS CTA -->
         <div class="collections-cta">
             <a href="gallery.html" class="btn-primary">View All Collections</a>
         </div>
@@ -74,26 +78,52 @@
 
     <!-- FOOTER -->
     <footer class="site-footer">
-    <p class="copyright">
-        © 2026 Shaurya Dev. All rights reserved.
-    </p>
+        <p class="copyright">
+            © 2026 Shaurya Dev. All rights reserved.
+        </p>
 
-    <p class="legal">
-        Digital products are licensed for personal and educational use only.
-        Unauthorized redistribution is prohibited.
-    </p>
+        <p class="legal">
+            Digital products are licensed for personal and educational use only.
+            Unauthorized redistribution is prohibited.
+        </p>
 
-    <div class="footer-links">
-        <a href="https://www.instagram.com/shaurya_visuals">Instagram</a>
-        <span>·</span>
-        <a href="shop.html">Shop</a>
-        <span>·</span>
-        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=Shauryadev216@gmail.com">Contact</a>
-    </div>
+        <div class="footer-links">
+            <a href="https://www.instagram.com/shaurya_visuals">Instagram</a>
+            <span>·</span>
+            <a href="shop.html">Shop</a>
+            <span>·</span>
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=Shauryadev216@gmail.com">Contact</a>
+        </div>
 
-    <p class="contact-email">shauryadev216@gmail.com</p>
-</footer>
+        <p class="contact-email">shauryadev216@gmail.com</p>
+    </footer>
 
-<script src="public/js/home-products.js"></script>
+    <script src="public/js/home-products.js"></script>
+
+    <!-- 🔥 ADDED SCRIPT (ONLY THIS) -->
+    <script>
+    const user = localStorage.getItem("userEmail");
+
+    if(user){
+
+        const nav = document.getElementById("navLinks");
+
+        // hide login/signup
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("signupBtn").style.display = "none";
+
+        // add dashboard + logout
+        nav.innerHTML += `
+            <a href="dashboard.html">Dashboard</a>
+            <a href="#" onclick="logout()">Logout</a>
+        `;
+    }
+
+    function logout(){
+        localStorage.removeItem("userEmail");
+        location.reload();
+    }
+    </script>
+
 </body>
 </html>

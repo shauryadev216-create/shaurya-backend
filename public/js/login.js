@@ -14,30 +14,48 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+// =========================
 // EMAIL LOGIN
+// =========================
 window.login = async function () {
 
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
     try {
+
         await signInWithEmailAndPassword(auth, email, password);
+
+        // 🔥 SAVE USER
+        localStorage.setItem("userEmail", email);
+
         alert("Login success");
-        window.location.href = "/";
+        window.location.href = "/dashboard.html";
+
     } catch (err) {
         alert(err.message);
     }
 };
 
+// =========================
 // GOOGLE LOGIN
+// =========================
 window.googleLogin = async function () {
 
     const provider = new GoogleAuthProvider();
 
     try {
-        await signInWithPopup(auth, provider);
+
+        const result = await signInWithPopup(auth, provider);
+
+        const email = result.user.email;
+
+        // 🔥 SAVE USER
+        localStorage.setItem("userEmail", email);
+
         alert("Google login success");
-        window.location.href = "/";
+        window.location.href = "/dashboard.html";
+
     } catch (err) {
         alert(err.message);
     }

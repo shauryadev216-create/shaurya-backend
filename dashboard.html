@@ -1,101 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>My Purchases</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<title>Dashboard</title>
 
 <style>
-
 body{
-    font-family:'Inter', sans-serif;
-    background:#f5f7fb;
-    margin:0;
+    font-family: Arial;
+    background:#f5f5f5;
 }
 
-/* HEADER */
-.header{
-    padding:20px 40px;
-    background:#fff;
-    box-shadow:0 2px 10px rgba(0,0,0,0.05);
-    display:flex;
-    justify-content:space-between;
-}
-
-.header h2{
-    margin:0;
-}
-
-/* CONTAINER */
 .container{
-    max-width:1100px;
-    margin:40px auto;
-    padding:20px;
+    max-width:900px;
+    margin:50px auto;
 }
 
-/* CARD */
 .card{
     background:#fff;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:15px;
+    padding:15px;
+    margin-bottom:10px;
     display:flex;
-    gap:20px;
     align-items:center;
-    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+    gap:15px;
+    border-radius:8px;
 }
 
 .card img{
-    width:120px;
-    height:80px;
+    width:100px;
+    height:70px;
     object-fit:cover;
-    border-radius:8px;
 }
 
-.info{
-    flex:1;
-}
-
-.title{
-    font-weight:600;
-    font-size:18px;
-}
-
-.price{
-    color:#666;
-    font-size:14px;
-}
-
-/* DOWNLOAD BUTTON */
 .download-btn{
-    padding:10px 18px;
+    margin-left:auto;
+    padding:8px 14px;
     background:#111;
     color:#fff;
     border:none;
-    border-radius:8px;
     cursor:pointer;
 }
-
 </style>
 
 </head>
 
 <body>
 
-<div class="header">
-    <h2>My Purchases</h2>
-</div>
-
 <div class="container">
 
-    <input id="emailInput" placeholder="Enter your email to load purchases" style="padding:10px; width:300px;">
-    <button onclick="loadPurchases()">Load</button>
+<h2>Your Purchases</h2>
 
-    <div id="purchaseList"></div>
+<input id="emailInput" placeholder="Enter your email">
+<button onclick="loadPurchases()">Load</button>
+
+<div id="purchaseList"></div>
 
 </div>
 
 <script src="dashboard.js"></script>
+
+<script>
+// 🔥 AUTO FILL EMAIL
+const saved = localStorage.getItem("userEmail");
+
+if(saved){
+    document.getElementById("emailInput").value = saved;
+    loadPurchases();
+}
+</script>
 
 </body>
 </html>
