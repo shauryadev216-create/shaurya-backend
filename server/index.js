@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
@@ -73,7 +72,7 @@ app.delete("/delete-product/:id", async (req, res) => {
 });
 
 // =========================
-// CREATE ORDER
+// CREATE ORDER (🔥 FIXED)
 // =========================
 app.post("/create-order", async (req, res) => {
 
@@ -109,20 +108,22 @@ app.post("/create-order", async (req, res) => {
 
         console.log("✅ ORDER CREATED:", response.data);
 
+        // 🔥 IMPORTANT: SEND SESSION ID
         res.json({
-    success:
-        response.data.order_status === "PAID" ||
-        response.data.order_status === "ACTIVE"
-});
+            payment_session_id: response.data.payment_session_id
+        });
 
     } catch (err) {
         console.error("❌ ORDER ERROR:", err.response?.data || err.message);
-        res.status(500).json({ error: "Order failed" });
+
+        res.status(500).json({
+            error: err.response?.data || err.message
+        });
     }
 });
 
 // =========================
-// VERIFY PAYMENT (FINAL CLEAN)
+// VERIFY PAYMENT
 // =========================
 app.post("/verify-payment", async (req, res) => {
 
@@ -144,9 +145,7 @@ app.post("/verify-payment", async (req, res) => {
         console.log("🔍 VERIFY RESPONSE:", response.data);
 
         res.json({
-            success:
-                response.data.order_status === "PAID" ||
-                response.data.order_status === "ACTIVE" // ✅ TEMP FIX
+            success: response.data.order_status === "PAID"
         });
 
     } catch (err) {
