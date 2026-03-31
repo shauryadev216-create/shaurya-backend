@@ -90,6 +90,15 @@ button:hover{
     text-decoration:underline;
 }
 
+.google-btn{
+    background:#fff;
+    color:#333;
+    border:1px solid #ddd;
+}
+
+.google-btn:hover{
+    background:#f3f3f3;
+}
 </style>
 
 </head>
@@ -105,6 +114,10 @@ button:hover{
     <input id="password" type="password" placeholder="Password">
 
     <button onclick="signup()">Create Account</button>
+
+<button class="google-btn" onclick="googleSignup()">
+    Continue with Google
+</button>
 
     <div class="bottom">
         Already have an account?
