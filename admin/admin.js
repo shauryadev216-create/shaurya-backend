@@ -1,44 +1,30 @@
-// =========================
-// 🌐 BACKEND URL
-// =========================
 const API = "https://shaurya-backend.onrender.com";
 
 // =========================
-// CLOUDINARY UPLOAD
+// CLOUDINARY
 // =========================
-
-// IMAGE
 async function uploadToCloudinary(file){
     const url = "https://api.cloudinary.com/v1_1/dayaij4yc/image/upload";
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "unsigned_preset");
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", "unsigned_preset");
 
-    const res = await fetch(url, {
-        method: "POST",
-        body: formData
-    });
-
+    const res = await fetch(url, { method:"POST", body:fd });
     const data = await res.json();
 
     if(data.secure_url) return data.secure_url;
     throw new Error("Image upload failed");
 }
 
-// ZIP
 async function uploadZip(file){
     const url = "https://api.cloudinary.com/v1_1/dayaij4yc/raw/upload";
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "unsigned_preset");
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", "unsigned_preset");
 
-    const res = await fetch(url, {
-        method: "POST",
-        body: formData
-    });
-
+    const res = await fetch(url, { method:"POST", body:fd });
     const data = await res.json();
 
     if(data.secure_url) return data.secure_url;
@@ -48,7 +34,41 @@ async function uploadZip(file){
 let editId = null;
 
 // =========================
-// ADD PRODUCT
+// 🔥 MODE SWITCH UI
+// =========================
+function updateModeUI(){
+
+    const type = document.querySelector('input[name="type"]:checked').value;
+
+    const photoCover = document.getElementById("photoCover");
+    const photoOriginal = document.getElementById("photoOriginal");
+    const packPreview = document.getElementById("packPreview");
+    const packZip = document.getElementById("packZip");
+
+    if(type === "photo"){
+
+        photoCover.disabled = false;
+        photoOriginal.disabled = false;
+
+        packPreview.disabled = false; // optional preview allowed
+        packZip.disabled = true;
+
+        packZip.parentElement.style.opacity = 0.3;
+
+    }else{
+
+        photoCover.disabled = true;
+        photoOriginal.disabled = true;
+
+        packPreview.disabled = false;
+        packZip.disabled = false;
+
+        packZip.parentElement.style.opacity = 1;
+    }
+}
+
+// =========================
+// ADD / UPDATE PRODUCT
 // =========================
 async function addProduct(){
 
@@ -57,7 +77,6 @@ async function addProduct(){
         const title = document.getElementById("title").value.trim();
         const price = document.getElementById("price").value.trim();
         const description = document.getElementById("description").value.trim();
-
         const type = document.querySelector('input[name="type"]:checked').value;
 
         const category = [];
@@ -79,9 +98,7 @@ async function addProduct(){
             type
         };
 
-        // =========================
-        // PHOTO
-        // =========================
+        // ================= PHOTO =================
         if(type === "photo"){
 
             const coverFile = document.getElementById("photoCover").files[0];
@@ -93,15 +110,15 @@ async function addProduct(){
                 return;
             }
 
-            // Upload files
             const coverURL = await uploadToCloudinary(coverFile);
             const originalURL = await uploadToCloudinary(originalFile);
 
             let previewURLs = [];
 
-            for(let file of previewFiles){
-                const url = await uploadToCloudinary(file);
-                previewURLs.push(url);
+            if(previewFiles.length){
+                for(let file of previewFiles){
+                    previewURLs.push(await uploadToCloudinary(file));
+                }
             }
 
             product.cover = coverURL;
@@ -109,9 +126,7 @@ async function addProduct(){
             product.preview = previewURLs.length ? previewURLs : [coverURL];
         }
 
-        // =========================
-        // PACK
-        // =========================
+        // ================= PACK =================
         else{
 
             const previewFiles = document.getElementById("packPreview").files;
@@ -125,8 +140,7 @@ async function addProduct(){
             let previewURLs = [];
 
             for(let file of previewFiles){
-                const url = await uploadToCloudinary(file);
-                previewURLs.push(url);
+                previewURLs.push(await uploadToCloudinary(file));
             }
 
             const zipURL = await uploadZip(zipFile);
@@ -136,47 +150,38 @@ async function addProduct(){
             product.zip = zipURL;
         }
 
-        // =========================
-        // SEND TO BACKEND
-        // =========================
+        // ================= SEND =================
         const res = await fetch(API + "/add-product", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
             body: JSON.stringify(product)
         });
 
         const data = await res.json();
 
         if(data.success){
-            alert("✅ Product Saved!");
+            alert("✅ Saved!");
             editId = null;
             loadProducts();
         }else{
-            alert("❌ Failed to save");
+            alert("❌ Failed");
         }
 
     }catch(err){
         console.error(err);
-        alert("❌ Error occurred");
+        alert("❌ Error");
     }
 }
 
 // =========================
-// LOAD PRODUCTS
+// LOAD
 // =========================
 async function loadProducts(){
 
-    try{
-        const res = await fetch(API + "/products");
-        const products = await res.json();
+    const res = await fetch(API + "/products");
+    const products = await res.json();
 
-        renderProducts(products);
-
-    }catch(err){
-        console.error("Load error:", err);
-    }
+    renderProducts(products);
 }
 
 // =========================
@@ -184,10 +189,7 @@ async function loadProducts(){
 // =========================
 async function deleteProduct(id){
 
-    await fetch(API + "/delete-product/" + id, {
-        method: "DELETE"
-    });
-
+    await fetch(API + "/delete-product/" + id, { method:"DELETE" });
     loadProducts();
 }
 
@@ -207,6 +209,7 @@ function editProduct(p){
     });
 
     editId = p.id;
+    updateModeUI();
 }
 
 // =========================
@@ -218,7 +221,6 @@ function renderProducts(products){
     box.innerHTML = "";
 
     products.forEach(p=>{
-
         box.innerHTML += `
         <div class="admin-card">
             <div>
@@ -228,11 +230,13 @@ function renderProducts(products){
             </div>
 
             <div>
-                <button onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
-                <button onclick='deleteProduct("${p.id}")'>Delete</button>
+                <button class="action-btn edit-btn"
+                onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
+
+                <button class="action-btn delete-btn"
+                onclick='deleteProduct("${p.id}")'>Delete</button>
             </div>
-        </div>
-        `;
+        </div>`;
     });
 }
 
@@ -240,6 +244,13 @@ function renderProducts(products){
 // INIT
 // =========================
 document.addEventListener("DOMContentLoaded", ()=>{
+
     loadProducts();
+    updateModeUI();
+
     document.getElementById("saveBtn").addEventListener("click", addProduct);
+
+    document.querySelectorAll('input[name="type"]').forEach(r=>{
+        r.addEventListener("change", updateModeUI);
+    });
 });
