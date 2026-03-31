@@ -48,7 +48,6 @@ body{
     border-radius:8px;
     cursor:pointer;
     font-size:14px;
-    transition:all 0.25s;
 }
 
 .type-box input{
@@ -62,7 +61,7 @@ body{
     border-radius:8px;
 }
 
-/* CATEGORY CHIPS */
+/* CATEGORY */
 .category-box{
     display:flex;
     flex-wrap:wrap;
@@ -76,7 +75,6 @@ body{
     border-radius:20px;
     cursor:pointer;
     font-size:13px;
-    transition:0.2s;
 }
 
 .category-box input{
@@ -88,6 +86,16 @@ body{
     color:#fff;
 }
 
+/* FILE FIELD */
+.field{
+    margin-bottom:15px;
+}
+
+.field.disabled{
+    opacity:0.3;
+    pointer-events:none;
+}
+
 /* BUTTON */
 .btn-save{
     width:100%;
@@ -97,16 +105,9 @@ body{
     border:none;
     border-radius:8px;
     cursor:pointer;
-    font-size:14px;
-    letter-spacing:1px;
-    transition:0.25s;
 }
 
-.btn-save:hover{
-    background:#444;
-}
-
-/* PRODUCT LIST */
+/* LIST */
 .admin-list{
     max-width:850px;
     margin:30px auto;
@@ -120,10 +121,9 @@ body{
     margin-bottom:12px;
     display:flex;
     justify-content:space-between;
-    align-items:center;
 }
 
-/* ACTION BUTTONS */
+/* ACTION */
 .action-btn{
     padding:8px 12px;
     font-size:12px;
@@ -132,14 +132,8 @@ body{
     border-radius:6px;
 }
 
-.edit-btn{
-    background:#eaeaea;
-}
-
-.delete-btn{
-    background:#ff4d4d;
-    color:#fff;
-}
+.edit-btn{ background:#eaeaea; }
+.delete-btn{ background:#ff4d4d; color:#fff; }
 
 </style>
 
@@ -155,21 +149,14 @@ body{
 <input id="price" placeholder="Price ($)">
 <textarea id="description" placeholder="Description"></textarea>
 
-<!-- 🔥 TYPE -->
+<!-- TYPE -->
 <div class="type-box">
-    <label>
-        <input type="radio" name="type" value="photo" checked>
-        <span>Photo</span>
-    </label>
-    <label>
-        <input type="radio" name="type" value="pack">
-        <span>Pack</span>
-    </label>
+<label><input type="radio" name="type" value="photo" checked><span>Photo</span></label>
+<label><input type="radio" name="type" value="pack"><span>Pack</span></label>
 </div>
 
-<!-- 🔥 CATEGORY -->
+<!-- CATEGORY -->
 <div class="category-box">
-
 <label><input type="checkbox" value="nature"><span>Nature</span></label>
 <label><input type="checkbox" value="cinematic"><span>Cinematic</span></label>
 <label><input type="checkbox" value="macro"><span>Macro</span></label>
@@ -178,22 +165,31 @@ body{
 <label><input type="checkbox" value="portrait"><span>Portrait</span></label>
 <label><input type="checkbox" value="minimal"><span>Minimal</span></label>
 <label><input type="checkbox" value="abstract"><span>Abstract</span></label>
-
 </div>
 
-<input id="tags" placeholder="Tags (comma separated)">
+<input id="tags" placeholder="Tags">
 
+<!-- PHOTO -->
+<div class="field photo-field">
 <p>Photo Cover</p>
 <input type="file" id="photoCover">
+</div>
 
+<div class="field photo-field">
 <p>Photo HD</p>
 <input type="file" id="photoOriginal">
+</div>
 
+<!-- PACK -->
+<div class="field pack-field">
 <p>Pack Preview</p>
 <input type="file" id="packPreview" multiple>
+</div>
 
-<p>Pack ZIP File</p>
+<div class="field pack-field">
+<p>Pack ZIP</p>
 <input type="file" id="packZip">
+</div>
 
 <button id="saveBtn" class="btn-save">Save Product</button>
 

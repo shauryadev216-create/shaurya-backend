@@ -40,30 +40,15 @@ function updateModeUI(){
 
     const type = document.querySelector('input[name="type"]:checked').value;
 
-    const photoCover = document.getElementById("photoCover");
-    const photoOriginal = document.getElementById("photoOriginal");
-    const packPreview = document.getElementById("packPreview");
-    const packZip = document.getElementById("packZip");
+    const photoFields = document.querySelectorAll(".photo-field");
+    const packFields = document.querySelectorAll(".pack-field");
 
     if(type === "photo"){
-
-        photoCover.disabled = false;
-        photoOriginal.disabled = false;
-
-        packPreview.disabled = false; // optional preview allowed
-        packZip.disabled = true;
-
-        packZip.parentElement.style.opacity = 0.3;
-
+        photoFields.forEach(f => f.classList.remove("disabled"));
+        packFields.forEach(f => f.classList.add("disabled"));
     }else{
-
-        photoCover.disabled = true;
-        photoOriginal.disabled = true;
-
-        packPreview.disabled = false;
-        packZip.disabled = false;
-
-        packZip.parentElement.style.opacity = 1;
+        photoFields.forEach(f => f.classList.add("disabled"));
+        packFields.forEach(f => f.classList.remove("disabled"));
     }
 }
 
