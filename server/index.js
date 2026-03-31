@@ -72,11 +72,11 @@ app.delete("/delete-product/:id", async (req, res) => {
 });
 
 // =========================
-// CREATE ORDER (🔥 FIXED)
+// CREATE ORDER (🔥 FINAL FIX)
 // =========================
 app.post("/create-order", async (req, res) => {
 
-    const { amount, id } = req.body;
+    const { amount, id, phone, email } = req.body;
     const orderId = "order_" + Date.now();
 
     try {
@@ -87,11 +87,13 @@ app.post("/create-order", async (req, res) => {
                 order_amount: Number(amount),
                 order_currency: "INR",
                 order_id: orderId,
+
                 customer_details: {
                     customer_id: "user_" + Date.now(),
-                    customer_email: "test@test.com",
-                    customer_phone: "9999999999"
+                    customer_email: email || "test@test.com",
+                    customer_phone: phone || "9999999999"
                 },
+
                 order_meta: {
                     return_url: `https://verdant-speculoos-e2aac1.netlify.app/product-template.html?id=${id}&order_id=${orderId}`
                 }
@@ -108,7 +110,6 @@ app.post("/create-order", async (req, res) => {
 
         console.log("✅ ORDER CREATED:", response.data);
 
-        // 🔥 IMPORTANT: SEND SESSION ID
         res.json({
             payment_session_id: response.data.payment_session_id
         });
@@ -141,8 +142,6 @@ app.post("/verify-payment", async (req, res) => {
                 }
             }
         );
-
-        console.log("🔍 VERIFY RESPONSE:", response.data);
 
         res.json({
             success: response.data.order_status === "PAID"

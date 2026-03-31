@@ -1,62 +1,34 @@
-// =========================
-// CONFIG
-// =========================
 const API = "https://shaurya-backend.onrender.com";
 
-// =========================
-// GET PRODUCT ID FROM URL
-// =========================
 const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
 
-console.log("👉 URL ID:", id);
+const id = params.get("id");
+const phone = params.get("phone");
+const email = params.get("email");
 
 if (!id) {
-    alert("No product ID in URL");
-    throw new Error("Missing ID");
+    alert("Missing product ID");
+    throw new Error("No ID");
 }
 
-// =========================
-// LOAD PRODUCT FROM SERVER
-// =========================
 async function loadProduct() {
 
-    try {
-        const res = await fetch(API + "/products");
+    const res = await fetch(API + "/products");
+    const products = await res.json();
 
-        if (!res.ok) {
-            throw new Error("Failed to fetch products");
-        }
+    const product = products.find(p => String(p._id) === String(id));
 
-        const products = await res.json();
-
-        console.log("📦 All Products:", products);
-
-        const product = products.find(p => String(p._id) === String(id));
-
-        console.log("🎯 Found Product:", product);
-
-        if (!product) {
-            alert("Product not found");
-            throw new Error("Product not found");
-        }
-
-        startPayment(product);
-
-    } catch (err) {
-        console.error("❌ LOAD ERROR:", err);
-        alert("Error loading product");
+    if (!product) {
+        alert("Product not found");
+        return;
     }
+
+    startPayment(product);
 }
 
-// =========================
-// CREATE ORDER + PAYMENT
-// =========================
 async function startPayment(product) {
 
     try {
-
-        console.log("💰 Starting payment for:", product);
 
         const res = await fetch(API + "/create-order", {
             method: "POST",
@@ -65,28 +37,19 @@ async function startPayment(product) {
             },
             body: JSON.stringify({
                 amount: product.price,
-                id: product._id
+                id: product._id,
+                phone,
+                email
             })
         });
 
         const data = await res.json();
 
-        console.log("🧾 ORDER RESPONSE:", data);
-
-        // 🔥 SHOW REAL ERROR FROM BACKEND
-        if (!res.ok) {
-            alert("Backend Error: " + JSON.stringify(data));
-            throw new Error("Order failed");
-        }
-
         if (!data.payment_session_id) {
-            alert("No payment session ID received");
-            throw new Error("Invalid response");
+            alert("Payment session error");
+            return;
         }
 
-        // =========================
-        // CASHFREE CHECKOUT
-        // =========================
         const cashfree = Cashfree({
             mode: "sandbox"
         });
@@ -97,12 +60,9 @@ async function startPayment(product) {
         });
 
     } catch (err) {
-        console.error("❌ PAYMENT ERROR:", err);
+        console.error(err);
         alert("Payment failed");
     }
 }
 
-// =========================
-// INIT
-// =========================
 loadProduct();

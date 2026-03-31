@@ -173,7 +173,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById("buyBtn");
 
     btn.onclick = function () {
-        window.location.href = "/payment.html?id=" + id;
+
+        const phone = document.getElementById("userPhone").value;
+        const email = document.getElementById("userEmail").value;
+
+        if (!phone || !email) {
+            alert("Enter phone & email");
+            return;
+        }
+
+        window.location.href = `/payment.html?id=${id}&phone=${phone}&email=${email}`;
     };
 
     loadProduct();
