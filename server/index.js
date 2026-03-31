@@ -34,6 +34,21 @@ const productSchema = new mongoose.Schema({
 const Product = mongoose.model("Product", productSchema);
 
 // =========================
+// 🆕 PURCHASE SCHEMA
+// =========================
+const purchaseSchema = new mongoose.Schema({
+    user_email: String,
+    product_id: String,
+    order_id: String,
+    created_at: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const Purchase = mongoose.model("Purchase", purchaseSchema);
+
+// =========================
 // ADD PRODUCT
 // =========================
 app.post("/add-product", async (req, res) => {
@@ -72,7 +87,7 @@ app.delete("/delete-product/:id", async (req, res) => {
 });
 
 // =========================
-// CREATE ORDER (🔥 FINAL FIX)
+// CREATE ORDER (🔥 FINAL CLEAN)
 // =========================
 app.post("/create-order", async (req, res) => {
 
@@ -109,6 +124,13 @@ app.post("/create-order", async (req, res) => {
         );
 
         console.log("✅ ORDER CREATED:", response.data);
+
+        // 🔥 SAVE PURCHASE (ONLY AFTER ORDER CREATED)
+        await Purchase.create({
+            user_email: email,
+            product_id: id,
+            order_id: orderId
+        });
 
         res.json({
             payment_session_id: response.data.payment_session_id
@@ -150,6 +172,21 @@ app.post("/verify-payment", async (req, res) => {
     } catch (err) {
         console.error("❌ VERIFY ERROR:", err.response?.data || err.message);
         res.json({ success: false });
+    }
+});
+
+// =========================
+// 🆕 GET USER PURCHASES
+// =========================
+app.get("/my-purchases/:email", async (req, res) => {
+    try {
+        const purchases = await Purchase.find({
+            user_email: req.params.email
+        });
+
+        res.json(purchases);
+    } catch (err) {
+        res.json([]);
     }
 });
 
