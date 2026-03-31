@@ -114,7 +114,7 @@ function startDownload() {
 
     let fileUrl = "";
 
-    // 📸 PHOTO MODE → DOWNLOAD ORIGINAL IMAGE
+    // 📸 PHOTO MODE
     if (productData.type === "photo") {
         if (productData.original) {
             fileUrl = productData.original;
@@ -124,7 +124,7 @@ function startDownload() {
         }
     }
 
-    // 📦 PACK MODE → DOWNLOAD ZIP
+    // 📦 PACK MODE
     else if (productData.type === "pack") {
         if (productData.zip) {
             fileUrl = productData.zip;
@@ -139,14 +139,30 @@ function startDownload() {
         return;
     }
 
-    // 🔽 DOWNLOAD
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.download = productData.title;
+    // 🔥 FORCE DOWNLOAD
+    fetch(fileUrl)
+        .then(res => res.blob())
+        .then(blob => {
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = blobUrl;
+
+            // 🔥 FILE NAME
+            let ext = fileUrl.split(".").pop().split("?")[0];
+            link.download = productData.title + "." + ext;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            window.URL.revokeObjectURL(blobUrl);
+        })
+        .catch(err => {
+            console.error(err);
+            alert("❌ Download failed");
+        });
 }
 
 // ==========================
