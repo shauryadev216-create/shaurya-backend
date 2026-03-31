@@ -110,8 +110,10 @@ app.post("/create-order", async (req, res) => {
         console.log("✅ ORDER CREATED:", response.data);
 
         res.json({
-            payment_session_id: response.data.payment_session_id
-        });
+    success:
+        response.data.order_status === "PAID" ||
+        response.data.order_status === "ACTIVE"
+});
 
     } catch (err) {
         console.error("❌ ORDER ERROR:", err.response?.data || err.message);

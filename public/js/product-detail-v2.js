@@ -6,9 +6,7 @@ const orderId = params.get("order_id");
 
 let productData = null;
 
-// =========================
 // LOAD PRODUCT
-// =========================
 async function loadProduct(){
     try{
         const res = await fetch(API + "/products");
@@ -23,22 +21,17 @@ async function loadProduct(){
 
         productData = product;
 
-        // UI
         document.getElementById("title").textContent = product.title;
         document.getElementById("description").textContent = product.description || "";
         document.getElementById("price").textContent = "$" + product.price;
         document.getElementById("mainImage").src = product.cover;
 
-        // BUTTON DEFAULT
-        const btn = document.getElementById("buyBtn");
-        btn.onclick = () => {
-            window.location.href = "payment.html?id=" + id;
-        };
-
         // 🔥 IF RETURNED FROM PAYMENT
         if(orderId){
-            verifyAndDownload();
+            await verifyPayment();
         }
+
+        updateButton();
 
     }catch(err){
         console.error(err);
@@ -46,11 +39,8 @@ async function loadProduct(){
     }
 }
 
-// =========================
-// VERIFY + DOWNLOAD FLOW
-// =========================
-async function verifyAndDownload(){
-
+// VERIFY PAYMENT
+async function verifyPayment(){
     try{
         const res = await fetch(API + "/verify-payment", {
             method: "POST",
@@ -60,82 +50,74 @@ async function verifyAndDownload(){
 
         const data = await res.json();
 
-        console.log("VERIFY:", data);
+        if(data.success){
+            localStorage.setItem("purchased_" + id, "true");
 
-        if(!data.success){
-            alert("Payment not verified yet");
-            return;
+            // CLEAN URL
+            window.history.replaceState({}, document.title, "product-template.html?id=" + id);
+
+            startAutoDownload();
         }
-
-        // ✅ SUCCESS UI
-        showDownloadUI();
-
-        // 🔥 AUTO DOWNLOAD AFTER 5s
-        let seconds = 5;
-        const timer = setInterval(()=>{
-            document.getElementById("countdown").textContent =
-                "Downloading in " + seconds + "s...";
-            seconds--;
-
-            if(seconds < 0){
-                clearInterval(timer);
-                downloadFile();
-            }
-        },1000);
 
     }catch(err){
         console.error(err);
     }
 }
 
-// =========================
-// DOWNLOAD UI
-// =========================
-function showDownloadUI(){
+// BUTTON LOGIC
+function updateButton(){
+    const btn = document.getElementById("buyBtn");
 
-    const container = document.querySelector(".product-buy");
-
-    container.innerHTML = `
-        <p id="countdown">Preparing download...</p>
-        <button id="downloadBtn" class="buy-btn">Download Now</button>
-    `;
-
-    document.getElementById("downloadBtn").onclick = downloadFile;
+    if(localStorage.getItem("purchased_" + id) === "true"){
+        btn.textContent = "Download Again";
+        btn.onclick = downloadProduct;
+    }else{
+        btn.textContent = "Buy Now";
+        btn.onclick = () => {
+            window.location.href = "payment.html?id=" + id;
+        };
+    }
 }
 
-// =========================
-// DOWNLOAD FUNCTION
-// =========================
-function downloadFile(){
+// AUTO DOWNLOAD WITH COUNTDOWN
+function startAutoDownload(){
+    const btn = document.getElementById("buyBtn");
 
+    let seconds = 5;
+    btn.textContent = "Downloading in 5...";
+
+    const interval = setInterval(()=>{
+        seconds--;
+        btn.textContent = "Downloading in " + seconds + "...";
+
+        if(seconds <= 0){
+            clearInterval(interval);
+            downloadProduct();
+            updateButton();
+        }
+    },1000);
+}
+
+// DOWNLOAD
+function downloadProduct(){
     if(!productData) return;
 
     let fileUrl = productData.type === "photo"
         ? (productData.original || productData.cover)
         : productData.zip;
 
-    if(!fileUrl){
-        alert("No file available");
-        return;
-    }
-
     const link = document.createElement("a");
     link.href = fileUrl;
 
-    // 🔥 CLEAN FILE NAME
     const ext = fileUrl.split(".").pop();
-    const name = (productData.title || "download")
-        .replace(/[^\w\s]/gi, "")
-        .replace(/\s+/g, "_");
+    const cleanName = productData.title.replace(/[^\w\s]/gi,"").replace(/\s+/g,"_");
 
-    link.download = name + "." + ext;
+    link.download = cleanName + "." + ext;
 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
-// =========================
 // INIT
-// =========================
 loadProduct();
