@@ -1,3 +1,5 @@
+console.log("JS LOADED 🚀");
+
 const API = "https://shaurya-backend.onrender.com";
 
 const params = new URLSearchParams(window.location.search);
