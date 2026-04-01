@@ -118,6 +118,26 @@
     }
 }
 
+.preview-row{
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.preview-row img{
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: 6px;
+    opacity: 0.7;
+    transition: 0.3s;
+}
+
+.preview-row img:hover{
+    opacity: 1;
+}
+
 </style>
 
 </head>
@@ -140,8 +160,10 @@
 
     <!-- LEFT IMAGE -->
     <div class="product-image">
-        <img id="mainImage">
-    </div>
+    <img id="mainImage">
+
+    <div id="previewRow" class="preview-row"></div>
+</div>
 
     <!-- RIGHT INFO -->
     <div class="product-info">
@@ -169,6 +191,15 @@
 <!-- FOOTER (YOUR STYLE KEPT) -->
 <footer class="site-footer">
 
+<p class="copyright">
+© 2026 Shaurya Dev. All rights reserved.
+</p>
+
+<p class="legal">
+Digital products are licensed for personal and educational use only.
+Unauthorized redistribution is prohibited.
+</p>
+
 <div class="footer-links">
 <a href="https://www.instagram.com/shaurya_visuals">Instagram</a>
 <span>·</span>
@@ -177,7 +208,9 @@
 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=Shauryadev216@gmail.com">Contact</a>
 </div>
 
-<p class="contact-email">shauryadev216@gmail.com</p>
+<p class="contact-email">
+shauryadev216@gmail.com
+</p>
 
 </footer>
 

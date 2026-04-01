@@ -95,6 +95,12 @@ async function addProduct(){
                 return;
             }
 
+            // 🔥 LIMIT CHECK
+            if(previewFiles.length > 6){
+                alert("Max 6 preview images allowed");
+                return;
+            }
+
             const coverURL = await uploadToCloudinary(coverFile);
             const originalURL = await uploadToCloudinary(originalFile);
 
@@ -119,6 +125,12 @@ async function addProduct(){
 
             if(!zipFile){
                 alert("Upload ZIP file");
+                return;
+            }
+
+            // 🔥 LIMIT CHECK
+            if(previewFiles.length > 6){
+                alert("Max 6 preview images allowed");
                 return;
             }
 

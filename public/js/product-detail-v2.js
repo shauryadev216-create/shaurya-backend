@@ -23,10 +23,29 @@ async function loadProduct() {
 
         productData = product;
 
+        // BASIC INFO
         document.getElementById("title").textContent = product.title;
         document.getElementById("description").textContent = product.description || "";
         document.getElementById("price").textContent = "$" + product.price;
+
+        // MAIN IMAGE
         document.getElementById("mainImage").src = product.cover;
+
+        // ==========================
+        // PREVIEW IMAGES (🔥 FIXED)
+        // ==========================
+        const previewRow = document.getElementById("previewRow");
+
+        if (previewRow && product.preview && product.preview.length) {
+
+            previewRow.innerHTML = "";
+
+            product.preview.forEach(img => {
+                previewRow.innerHTML += `
+                    <img src="${img}" onclick="changeImage('${img}')">
+                `;
+            });
+        }
 
         // 🔥 IF RETURNED FROM PAYMENT
         if (orderId) {
@@ -36,6 +55,13 @@ async function loadProduct() {
     } catch (err) {
         console.error(err);
     }
+}
+
+// ==========================
+// CHANGE IMAGE (THUMB CLICK)
+// ==========================
+function changeImage(src) {
+    document.getElementById("mainImage").src = src;
 }
 
 // ==========================
@@ -59,7 +85,6 @@ async function verifyPaymentAndDownload() {
             return;
         }
 
-        // ✅ PAYMENT SUCCESS
         showDownloadUI();
 
     } catch (err) {
@@ -74,11 +99,9 @@ function showDownloadUI() {
 
     const btn = document.getElementById("buyBtn");
 
-    // 🔁 Convert button
     btn.textContent = "Download Now";
     btn.onclick = startDownload;
 
-    // ⏳ Countdown UI
     const msg = document.createElement("p");
     msg.id = "downloadMsg";
     msg.style.marginTop = "10px";
@@ -91,7 +114,6 @@ function showDownloadUI() {
 
     const interval = setInterval(() => {
         msg.textContent = `Download starting in ${count}s...`;
-
         count--;
 
         if (count < 0) {
@@ -103,7 +125,7 @@ function showDownloadUI() {
 }
 
 // ==========================
-// DOWNLOAD FILE (🔥 FIXED)
+// DOWNLOAD FILE
 // ==========================
 function startDownload() {
 
@@ -114,32 +136,29 @@ function startDownload() {
 
     let fileUrl = "";
 
-    // 📸 PHOTO MODE
     if (productData.type === "photo") {
+
         if (productData.original) {
             fileUrl = productData.original;
         } else {
             alert("❌ Original image missing!");
             return;
         }
-    }
 
-    // 📦 PACK MODE
-    else if (productData.type === "pack") {
+    } else if (productData.type === "pack") {
+
         if (productData.zip) {
             fileUrl = productData.zip;
         } else {
             alert("❌ ZIP file missing!");
             return;
         }
-    }
 
-    else {
+    } else {
         alert("❌ Invalid product type");
         return;
     }
 
-    // 🔥 FORCE DOWNLOAD
     fetch(fileUrl)
         .then(res => res.blob())
         .then(blob => {
@@ -149,7 +168,6 @@ function startDownload() {
             const link = document.createElement("a");
             link.href = blobUrl;
 
-            // 🔥 FILE NAME
             let ext = fileUrl.split(".").pop().split("?")[0];
             link.download = productData.title + "." + ext;
 
@@ -158,6 +176,7 @@ function startDownload() {
             document.body.removeChild(link);
 
             window.URL.revokeObjectURL(blobUrl);
+
         })
         .catch(err => {
             console.error(err);
@@ -166,7 +185,7 @@ function startDownload() {
 }
 
 // ==========================
-// BUY BUTTON CLICK
+// INIT
 // ==========================
 document.addEventListener("DOMContentLoaded", () => {
 
