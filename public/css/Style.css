@@ -996,3 +996,24 @@ h1, h2, h3 {
 .gallery-item:hover img{
     transform: scale(1.08);
 }
+
+
+/* =========================
+   GALLERY TITLE
+   ========================= */
+.gallery-title{
+    font-size: 13px;
+    margin-top: 8px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* SEARCH BAR IMPROVE */
+#searchInput{
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-size: 14px;
+    margin-bottom: 20px;
+}

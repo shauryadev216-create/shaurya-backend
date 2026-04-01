@@ -9,13 +9,18 @@
 <link rel="stylesheet" href="public/css/Style.css">
 
 <style>
+
+/* SEARCH */
 .search-box {
     width: 100%;
     padding: 14px;
     margin-bottom: 20px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-size: 14px;
 }
 
+/* FILTER */
 .filter-bar {
     display: flex;
     flex-wrap: wrap;
@@ -25,16 +30,34 @@
 
 .filter-btn {
     padding: 8px 16px;
-    border: 1px solid #111;
+    border: 1px solid var(--border);
     background: transparent;
     cursor: pointer;
     font-size: 12px;
+    border-radius: 20px;
+    color: var(--text-muted);
+    transition: 0.3s;
 }
+
+.filter-btn:hover {
+    color: var(--text-main);
+    border-color: var(--text-main);
+}
+
+/* IMAGE TITLE */
+.gallery-title{
+    font-size: 13px;
+    margin-top: 8px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
 </style>
 
 </head>
 <body>
 
+<!-- NAVBAR -->
 <nav class="navbar">
 <div class="logo">SHAURYA DEV</div>
 
@@ -46,15 +69,21 @@
 </div>
 </nav>
 
+<!-- HEADER -->
 <header class="page-header">
 <h1>Visual Archive.</h1>
 <p>A curated selection of natural light, textures, and quiet moments.</p>
 </header>
 
-<!-- 🔥 SEARCH + FILTER -->
+<!-- SEARCH + FILTER -->
 <section class="shop-section">
 
-<input id="searchBox" class="search-box" placeholder="Search images, categories, tags...">
+<input 
+id="searchBox" 
+class="search-box" 
+placeholder="Search images, categories, tags..."
+oninput="searchGallery()"
+>
 
 <div class="filter-bar">
 <button class="filter-btn" onclick="filterCategory('all')">All</button>
@@ -63,16 +92,18 @@
 <button class="filter-btn" onclick="filterCategory('macro')">Macro</button>
 <button class="filter-btn" onclick="filterCategory('bw')">B&W</button>
 <button class="filter-btn" onclick="filterCategory('textures')">Textures</button>
-<button class="filter-btn" onclick="filterCategory('lut')">LUTs</button>
+<button class="filter-btn" onclick="filterCategory('luts')">LUTs</button>
 <button class="filter-btn" onclick="filterCategory('street')">Street</button>
 <button class="filter-btn" onclick="filterCategory('portrait')">Portrait</button>
 <button class="filter-btn" onclick="filterCategory('minimal')">Minimal</button>
 </div>
 
+<!-- GALLERY -->
 <div class="gallery-grid" id="galleryGrid"></div>
 
 </section>
 
+<!-- FOOTER -->
 <footer class="site-footer">
 
 <p class="copyright">

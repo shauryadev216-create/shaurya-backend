@@ -1,116 +1,105 @@
+const API = "https://shaurya-backend.onrender.com";
+
 let allImages = [];
-let currentCategory = "all";
 
-// =========================
-// SAFE CATEGORY
-// =========================
-function safeCategory(cat){
-    if(!cat) return [];
-    return Array.isArray(cat) ? cat : [cat];
-}
+// ==========================
+// LOAD
+// ==========================
+async function loadGallery(){
 
-// =========================
-// LOAD FROM PRODUCTS
-// =========================
-function loadGallery(){
+    try{
 
-    const products = JSON.parse(localStorage.getItem("products")) || [];
+        const res = await fetch(API + "/products");
+        const products = await res.json();
 
-    allImages = [];
+        const container = document.getElementById("galleryGrid");
+        container.innerHTML = "";
 
-    products.forEach(p=>{
+        allImages = [];
 
-        const categories = safeCategory(p.category);
+        products.forEach(product => {
 
-        // PHOTO → only cover
-        if(p.type === "photo"){
-            allImages.push({
-                src: p.cover,
-                category: categories,
-                productId: p.id
-            });
-        }
+            if(!product.preview || !product.preview.length) return;
 
-        // PACK → all preview images
-        if(p.type === "pack" && p.preview){
-            p.preview.forEach(img=>{
+            product.preview.forEach(img => {
+
                 allImages.push({
-                    src: img,
-                    category: categories,
-                    productId: p.id
+                    img: img,
+                    id: product._id,
+                    title: product.title,
+                    category: product.category || []
                 });
-            });
-        }
-    });
 
-    renderGallery(allImages);
+            });
+
+        });
+
+        renderGallery(allImages);
+
+    }catch(err){
+        console.error(err);
+    }
 }
 
-// =========================
+// ==========================
 // RENDER
-// =========================
-function renderGallery(list){
+// ==========================
+function renderGallery(images){
 
-    const grid = document.getElementById("galleryGrid");
-    grid.innerHTML = "";
+    const container = document.getElementById("galleryGrid");
+    container.innerHTML = "";
 
-    if(list.length === 0){
-        grid.innerHTML = "<p>No images found</p>";
+    if(images.length === 0){
+        container.innerHTML = "<p>No images found</p>";
         return;
     }
 
-    list.forEach(img=>{
+    images.forEach(item => {
 
-        const div = document.createElement("div");
-        div.className = "gallery-item";
-
-        div.innerHTML = `
-            <img src="${img.src}" onclick="openProduct('${img.productId}')">
+        container.innerHTML += `
+        <div class="gallery-item" onclick="goToProduct('${item.id}')">
+            <img src="${item.img}">
+            <div class="gallery-title">${item.title}</div>
+        </div>
         `;
-
-        grid.appendChild(div);
     });
 }
 
-// =========================
-// OPEN PRODUCT
-// =========================
-function openProduct(id){
-    window.location.href = `product-template.html?id=${id}`;
+// ==========================
+// SEARCH
+// ==========================
+function searchGallery(){
+
+    const value = document.getElementById("searchBox").value.toLowerCase();
+
+    const filtered = allImages.filter(item =>
+        item.title.toLowerCase().includes(value) ||
+        item.category.join(" ").toLowerCase().includes(value)
+    );
+
+    renderGallery(filtered);
 }
 
-// =========================
-// FILTER CATEGORY
-// =========================
+// ==========================
+// FILTER
+// ==========================
 function filterCategory(cat){
-
-    currentCategory = cat;
 
     if(cat === "all"){
         renderGallery(allImages);
         return;
     }
 
-    const filtered = allImages.filter(img =>
-        img.category.includes(cat)
+    const filtered = allImages.filter(item =>
+        item.category.includes(cat)
     );
 
     renderGallery(filtered);
 }
 
-// =========================
-// SEARCH
-// =========================
-document.getElementById("searchBox").addEventListener("input", function(){
+// ==========================
+function goToProduct(id){
+    window.location.href = "/product-template.html?id=" + id;
+}
 
-    const q = this.value.toLowerCase();
-
-    const filtered = allImages.filter(img =>
-        img.category.join(" ").toLowerCase().includes(q)
-    );
-
-    renderGallery(filtered);
-});
-
-// INIT
 document.addEventListener("DOMContentLoaded", loadGallery);
