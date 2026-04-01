@@ -8,10 +8,15 @@ function safeCategory(cat){
     return Array.isArray(cat) ? cat : [cat];
 }
 
+// =========================
+// LOAD PRODUCTS
+// =========================
 async function loadProducts(){
     try{
         const res = await fetch(API + "/products");
         const data = await res.json();
+
+        console.log("SHOP PRODUCTS:", data);
 
         allProducts = data;
         applyFilters();
@@ -21,7 +26,11 @@ async function loadProducts(){
     }
 }
 
+// =========================
+// RENDER PRODUCTS
+// =========================
 function renderProducts(list){
+
     const container = document.getElementById("product-list");
     container.innerHTML = "";
 
@@ -32,41 +41,51 @@ function renderProducts(list){
 
     list.forEach(p=>{
 
-        container.innerHTML += `
-        <div class="shop-card">
+        // 🔥 MULTIPLE IMAGES
+        let imagesHTML = "";
 
+        if(p.preview && p.preview.length){
+
+            p.preview.forEach(img => {
+                imagesHTML += `
+                    <img src="${img}" 
+                    onclick="openProduct('${p._id}')"
+                    style="cursor:pointer;">
+                `;
+            });
+
+        } else {
+            imagesHTML = `<img src="${p.cover}">`;
+        }
+
+        const div = document.createElement("div");
+        div.className = "shop-card";
+
+        div.innerHTML = `
             <div class="shop-image">
-                <img src="${p.cover}">
+                ${imagesHTML}
             </div>
 
             <div class="shop-content">
-
-                <div class="shop-tag">
-                    ${p.type.toUpperCase()}
-                </div>
-
                 <h3>${p.title}</h3>
+                <p>$${p.price}</p>
 
-                <p>${p.description || ""}</p>
-
-                <div class="shop-footer">
-
-                    <span class="price">$${p.price}</span>
-
-                    <a href="product-template.html?id=${p._id}" class="btn-buy">
-                        View Pack
-                    </a>
-
-                </div>
-
+                <a class="view-pack-btn"
+                href="product-template.html?id=${p._id}">
+                View Product
+                </a>
             </div>
-
-        </div>
         `;
+
+        container.appendChild(div);
     });
 }
 
+// =========================
+// FILTERS
+// =========================
 function applyFilters(){
+
     let filtered = [...allProducts];
 
     const search = document.getElementById("searchBox");
@@ -92,6 +111,14 @@ function filterCategory(cat){
     applyFilters();
 }
 
+// =========================
+// OPEN PRODUCT
+// =========================
+function openProduct(id){
+    window.location.href = `/product-template.html?id=${id}`;
+}
+
+// INIT
 document.addEventListener("DOMContentLoaded", ()=>{
     loadProducts();
 
