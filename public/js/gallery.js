@@ -1,89 +1,89 @@
 const API = "https://shaurya-backend.onrender.com";
 
 let allImages = [];
+let currentCategory = "all";
 
-// ==========================
-// LOAD
-// ==========================
 async function loadGallery(){
 
-    try{
+    const res = await fetch(API + "/products");
+    const products = await res.json();
 
-        const res = await fetch(API + "/products");
-        const products = await res.json();
+    allImages = [];
 
-        const container = document.getElementById("galleryGrid");
-        container.innerHTML = "";
+    products.forEach(product => {
 
-        allImages = [];
-
-        products.forEach(product => {
-
-            if(!product.preview || !product.preview.length) return;
+        // 🔥 LOOP ALL PREVIEW IMAGES
+        if(product.preview && product.preview.length){
 
             product.preview.forEach(img => {
 
                 allImages.push({
                     img: img,
-                    id: product._id,
                     title: product.title,
-                    category: product.category || []
+                    category: product.category || [],
+                    id: product._id
                 });
 
             });
 
-        });
+        }
 
-        renderGallery(allImages);
+    });
 
-    }catch(err){
-        console.error(err);
-    }
+    renderGallery(allImages);
 }
 
-// ==========================
+// =========================
 // RENDER
-// ==========================
+// =========================
 function renderGallery(images){
 
-    const container = document.getElementById("galleryGrid");
-    container.innerHTML = "";
+    const grid = document.getElementById("galleryGrid");
+    grid.innerHTML = "";
 
-    if(images.length === 0){
-        container.innerHTML = "<p>No images found</p>";
+    if(!images.length){
+        grid.innerHTML = "<p>No images found</p>";
         return;
     }
 
     images.forEach(item => {
 
-        container.innerHTML += `
-        <div class="gallery-item" onclick="goToProduct('${item.id}')">
+        grid.innerHTML += `
+        <div class="gallery-item"
+        onclick="openProduct('${item.id}')">
+
             <img src="${item.img}">
-            <div class="gallery-title">${item.title}</div>
+
+            <div style="padding:8px 5px; font-size:13px;">
+                ${item.title}
+            </div>
+
         </div>
         `;
     });
 }
 
-// ==========================
+// =========================
 // SEARCH
-// ==========================
-function searchGallery(){
+// =========================
+document.getElementById("searchBox").addEventListener("input", function(){
 
-    const value = document.getElementById("searchBox").value.toLowerCase();
+    const val = this.value.toLowerCase();
 
     const filtered = allImages.filter(item =>
-        item.title.toLowerCase().includes(value) ||
-        item.category.join(" ").toLowerCase().includes(value)
+        item.title.toLowerCase().includes(val) ||
+        item.category.join(" ").toLowerCase().includes(val)
     );
 
     renderGallery(filtered);
-}
+});
 
-// ==========================
-// FILTER
-// ==========================
+// =========================
+// CATEGORY FILTER
+// =========================
 function filterCategory(cat){
+
+    currentCategory = cat;
 
     if(cat === "all"){
         renderGallery(allImages);
@@ -97,9 +97,12 @@ function filterCategory(cat){
     renderGallery(filtered);
 }
 
-// ==========================
-function goToProduct(id){
-    window.location.href = "/product-template.html?id=" + id;
+// =========================
+// OPEN PRODUCT
+// =========================
+function openProduct(id){
+    window.location.href = `/product-template.html?id=${id}`;
 }
 
-document.addEventListener("DOMContentLoaded", loadGallery);
+// INIT
+loadGallery();

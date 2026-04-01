@@ -31,16 +31,38 @@ function renderProducts(list){
     }
 
     list.forEach(p=>{
-        const div = document.createElement("div");
 
-        div.innerHTML = `
-            <img src="${p.cover}" width="200">
-            <h3>${p.title}</h3>
-            <p>$${p.price}</p>
-            <a href="product-template.html?id=${p._id}">View</a>
+        container.innerHTML += `
+        <div class="shop-card">
+
+            <div class="shop-image">
+                <img src="${p.cover}">
+            </div>
+
+            <div class="shop-content">
+
+                <div class="shop-tag">
+                    ${p.type.toUpperCase()}
+                </div>
+
+                <h3>${p.title}</h3>
+
+                <p>${p.description || ""}</p>
+
+                <div class="shop-footer">
+
+                    <span class="price">$${p.price}</span>
+
+                    <a href="product-template.html?id=${p._id}" class="btn-buy">
+                        View Pack
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
         `;
-
-        container.appendChild(div);
     });
 }
 
