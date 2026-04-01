@@ -11,13 +11,24 @@ async function uploadToCloudinary(file){
     fd.append("file", file);
     fd.append("upload_preset", "unsigned_preset");
 
-    const res = await fetch(url, { method:"POST", body:fd });
-    const data = await res.json();
+    try{
+        const res = await fetch(url, {
+            method:"POST",
+            body:fd
+        });
 
-    if(data.secure_url) return data.secure_url;
-    throw new Error("Upload failed");
+        const data = await res.json();
+
+        if(data.secure_url) return data.secure_url;
+
+        console.error("Cloudinary error:", data);
+        throw new Error("Upload failed");
+
+    }catch(err){
+        console.error("UPLOAD ERROR:", err);
+        throw err;
+    }
 }
-
 async function uploadZip(file){
 
     const url = "https://api.cloudinary.com/v1_1/dayaij4yc/auto/upload";
