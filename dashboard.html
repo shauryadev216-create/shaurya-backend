@@ -1,147 +1,264 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
 
 <style>
+
+/* ===== BASE ===== */
 body{
-    font-family: Arial;
+    margin:0;
+    font-family:'Inter', sans-serif;
     background:#f5f5f5;
 }
 
-.container{
-    max-width:900px;
-    margin:50px auto;
+/* ===== NAVBAR ===== */
+.navbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 40px;
+    background:#fff;
+    border-bottom:1px solid #eee;
 }
 
-.card{
-    background:#fff;
-    padding:15px;
-    margin-bottom:10px;
+.logo{
+    font-weight:600;
+    font-size:18px;
+}
+
+.nav-links{
     display:flex;
     align-items:center;
-    gap:15px;
-    border-radius:8px;
+    gap:20px;
 }
 
-.card img{
-    width:100px;
-    height:70px;
-    object-fit:cover;
+.nav-links a{
+    text-decoration:none;
+    color:#333;
+    font-size:14px;
 }
 
-.download-btn{
-    margin-left:auto;
+.logout-btn{
     padding:8px 14px;
     background:#111;
     color:#fff;
     border:none;
+    border-radius:6px;
     cursor:pointer;
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-    background: #f5f5f5;
+/* ===== MAIN ===== */
+.container{
+    max-width:1000px;
+    margin:50px auto;
+    padding:20px;
 }
 
-.container {
-    max-width: 900px;
-    margin: 60px auto;
+h2{
+    margin-bottom:20px;
 }
 
-h1 {
-    font-size: 28px;
-    margin-bottom: 20px;
+/* ===== CARDS ===== */
+.card{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    background:#fff;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:15px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.05);
 }
 
-.search-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
+.card img{
+    width:140px;
+    height:90px;
+    object-fit:cover;
+    border-radius:8px;
 }
 
-.search-bar input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
+.info{
+    flex:1;
 }
 
-.search-bar button {
-    padding: 12px 20px;
-    border: none;
-    background: #111;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
+.title{
+    font-weight:600;
+    margin-bottom:5px;
 }
 
-.card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #fff;
-    padding: 16px;
-    border-radius: 12px;
-    margin-bottom: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+.price{
+    color:#777;
 }
 
-.card img {
-    width: 80px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 8px;
+.download-btn{
+    padding:10px 18px;
+    background:#111;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
 }
 
-.info {
-    flex: 1;
-    margin-left: 15px;
+/* EMPTY */
+.empty{
+    text-align:center;
+    color:#777;
+    margin-top:40px;
 }
 
-.title {
-    font-weight: 600;
-}
-
-.price {
-    font-size: 14px;
-    color: #666;
-}
-
-.download-btn {
-    padding: 10px 16px;
-    border: none;
-    background: linear-gradient(135deg,#111,#333);
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-}
 </style>
 
 </head>
 
 <body>
 
+<!-- ===== NAVBAR ===== -->
+<div class="navbar">
+    <div class="logo">SHAURYA DEV</div>
+
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="shop.html">Shop</a>
+
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<!-- ===== MAIN ===== -->
 <div class="container">
 
-<h2>Your Purchases</h2>
+    <h2>Your Purchases</h2>
 
-
-
-<div id="purchaseList"></div>
+    <div id="purchaseList"></div>
 
 </div>
 
-<script src="/public/js/dashboard.js"></script>
-
 <script>
-// 🔥 AUTO FILL EMAIL
-const saved = localStorage.getItem("userEmail");
 
-if(saved){
-    document.getElementById("emailInput").value = saved;
-    loadPurchases();
+// =========================
+// CONFIG
+// =========================
+const API = "https://shaurya-backend.onrender.com";
+
+// =========================
+// CHECK LOGIN
+// =========================
+const email = localStorage.getItem("userEmail");
+
+if(!email){
+    alert("Please login first");
+    window.location.href = "/login.html";
 }
+
+// =========================
+// LOAD PURCHASES
+// =========================
+async function loadPurchases(){
+
+    try{
+
+        // 1️⃣ GET PURCHASES
+        const res = await fetch(API + "/my-purchases/" + email);
+        const purchases = await res.json();
+
+        // 2️⃣ GET PRODUCTS
+        const res2 = await fetch(API + "/products");
+        const products = await res2.json();
+
+        const container = document.getElementById("purchaseList");
+        container.innerHTML = "";
+
+        if(!purchases.length){
+            container.innerHTML = `<div class="empty">No purchases yet</div>`;
+            return;
+        }
+
+        purchases.forEach(p => {
+
+            const product = products.find(prod => String(prod._id) === String(p.product_id));
+            if(!product) return;
+
+            container.innerHTML += `
+            <div class="card">
+
+                <img src="${product.cover}">
+
+                <div class="info">
+                    <div class="title">${product.title}</div>
+                    <div class="price">$${product.price}</div>
+                </div>
+
+                <button class="download-btn"
+                onclick='downloadProduct(${JSON.stringify(product)})'>
+                Download
+                </button>
+
+            </div>
+            `;
+        });
+
+    }catch(err){
+        console.error(err);
+        alert("Error loading purchases");
+    }
+}
+
+// =========================
+// DOWNLOAD
+// =========================
+function downloadProduct(product){
+
+    let fileUrl = "";
+
+    if(product.type === "photo"){
+        fileUrl = product.original;
+    }
+    else if(product.type === "pack"){
+        fileUrl = product.zip;
+    }
+
+    if(!fileUrl){
+        alert("File not available");
+        return;
+    }
+
+    fetch(fileUrl)
+    .then(res => res.blob())
+    .then(blob => {
+
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = blobUrl;
+
+        let ext = fileUrl.split(".").pop().split("?")[0];
+        link.download = product.title + "." + ext;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        window.URL.revokeObjectURL(blobUrl);
+    });
+}
+
+// =========================
+// LOGOUT
+// =========================
+function logout(){
+    localStorage.removeItem("userEmail");
+    window.location.href = "/login.html";
+}
+
+// =========================
+// INIT
+// =========================
+loadPurchases();
+
 </script>
 
 </body>
