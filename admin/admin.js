@@ -5,7 +5,7 @@ const API = "https://shaurya-backend.onrender.com";
 // =========================
 async function uploadToCloudinary(file){
 
-    const url = "https://api.cloudinary.com/v1_1/dayaij4yc/image/upload";
+    const url = "https://api.cloudinary.com/v1_1/dayaij4yc/auto/upload";
 
     const fd = new FormData();
     fd.append("file", file);
@@ -20,7 +20,7 @@ async function uploadToCloudinary(file){
 
 async function uploadZip(file){
 
-    const url = "https://api.cloudinary.com/v1_1/dayaij4yc/raw/upload";
+    const url = "https://api.cloudinary.com/v1_1/dayaij4yc/auto/upload";
 
     const fd = new FormData();
     fd.append("file", file);
