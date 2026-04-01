@@ -69,30 +69,32 @@ async function addProduct(){
         // ================= PHOTO =================
         if(type === "photo"){
 
-            const coverFiles = document.getElementById("photoCover").files;
+            const coverFile = document.getElementById("photoCover").files[0];
             const originalFile = document.getElementById("photoOriginal").files[0];
+            const previewFiles = document.getElementById("packPreview").files;
 
-            if(!coverFiles.length || !originalFile){
+            if(!coverFile || !originalFile){
                 alert("Upload cover & HD image");
                 return;
             }
 
-            // 🔥 MULTIPLE PREVIEW IMAGES
+            product.cover = await uploadToCloudinary(coverFile);
+            product.original = await uploadToCloudinary(originalFile);
+
             let previewURLs = [];
 
-            for(let file of coverFiles){
-                const url = await uploadToCloudinary(file);
-                previewURLs.push(url);
+            if(previewFiles && previewFiles.length){
+                for(let file of previewFiles){
+                    try{
+                        const url = await uploadToCloudinary(file);
+                        previewURLs.push(url);
+                    }catch(e){
+                        console.error("Preview upload failed:", e);
+                    }
+                }
             }
 
-            // 🔥 MAIN COVER = FIRST IMAGE
-            product.cover = previewURLs[0];
-
-            // 🔥 ALL IMAGES = PREVIEW
-            product.preview = previewURLs;
-
-            // 🔥 ORIGINAL HD
-            product.original = await uploadToCloudinary(originalFile);
+            product.preview = previewURLs.length ? previewURLs : [product.cover];
         }
 
         // ================= PACK =================
@@ -101,36 +103,42 @@ async function addProduct(){
             const previewFiles = document.getElementById("packPreview").files;
             const zipFile = document.getElementById("packZip").files[0];
 
-            if(!previewFiles.length || !zipFile){
-                alert("Upload preview images & ZIP");
+            if(!zipFile){
+                alert("Upload ZIP file");
                 return;
             }
 
             let previewURLs = [];
 
-            for(let file of previewFiles){
-                const url = await uploadToCloudinary(file);
-                previewURLs.push(url);
+            if(previewFiles && previewFiles.length){
+                for(let file of previewFiles){
+                    try{
+                        const url = await uploadToCloudinary(file);
+                        previewURLs.push(url);
+                    }catch(e){
+                        console.error("Preview upload failed:", e);
+                    }
+                }
+            }
+
+            // 🔥 ZIP UPLOAD (WITH DEBUG)
+            let zipURL = "";
+            try{
+                zipURL = await uploadToCloudinary(zipFile);
+            }catch(err){
+                console.error("ZIP upload failed:", err);
+                alert("ZIP upload failed ❌");
+                return;
             }
 
             product.preview = previewURLs;
-            product.cover = previewURLs[0];
-            product.zip = await uploadZip(zipFile);
+            product.cover = previewURLs[0] || "";
+            product.zip = zipURL;
         }
 
-        // =========================
-        // CREATE OR UPDATE
-        // =========================
-        let url = API + "/add-product";
-        let method = "POST";
-
-        if(editId){
-            url = API + "/update-product/" + editId;
-            method = "PUT";
-        }
-
-        const res = await fetch(url, {
-            method,
+        // ================= SEND =================
+        const res = await fetch(API + "/add-product", {
+            method:"POST",
             headers:{ "Content-Type":"application/json" },
             body: JSON.stringify(product)
         });
@@ -139,18 +147,16 @@ async function addProduct(){
 
         if(data.success){
             alert("✅ Saved!");
-
             editId = null;
-            document.getElementById("saveBtn").textContent = "Save Product";
-
             loadProducts();
         }else{
+            console.error(data);
             alert("❌ Failed");
         }
 
     }catch(err){
-        console.error(err);
-        alert("❌ Error");
+        console.error("FULL ERROR:", err);
+        alert("Something broke — check console ❌");
     }
 }
 
