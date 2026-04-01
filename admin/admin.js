@@ -4,6 +4,7 @@ const API = "https://shaurya-backend.onrender.com";
 // CLOUDINARY
 // =========================
 async function uploadToCloudinary(file){
+
     const url = "https://api.cloudinary.com/v1_1/dayaij4yc/image/upload";
 
     const fd = new FormData();
@@ -14,10 +15,11 @@ async function uploadToCloudinary(file){
     const data = await res.json();
 
     if(data.secure_url) return data.secure_url;
-    throw new Error("Image upload failed");
+    throw new Error("Upload failed");
 }
 
 async function uploadZip(file){
+
     const url = "https://api.cloudinary.com/v1_1/dayaij4yc/raw/upload";
 
     const fd = new FormData();
@@ -34,26 +36,7 @@ async function uploadZip(file){
 let editId = null;
 
 // =========================
-// 🔥 MODE SWITCH UI
-// =========================
-function updateModeUI(){
-
-    const type = document.querySelector('input[name="type"]:checked').value;
-
-    const photoFields = document.querySelectorAll(".photo-field");
-    const packFields = document.querySelectorAll(".pack-field");
-
-    if(type === "photo"){
-        photoFields.forEach(f => f.classList.remove("disabled"));
-        packFields.forEach(f => f.classList.add("disabled"));
-    }else{
-        photoFields.forEach(f => f.classList.add("disabled"));
-        packFields.forEach(f => f.classList.remove("disabled"));
-    }
-}
-
-// =========================
-// ADD / UPDATE PRODUCT
+// ADD PRODUCT
 // =========================
 async function addProduct(){
 
@@ -75,7 +58,7 @@ async function addProduct(){
         }
 
         let product = {
-            id: editId || Date.now().toString(),
+            id: editId || Date.now().toString(), // 🔥 KEY FIX
             title,
             price: Number(price),
             description,
@@ -83,7 +66,8 @@ async function addProduct(){
             type
         };
 
-        // ================= PHOTO =================
+        // ================= FILE LOGIC (same as before) =================
+
         if(type === "photo"){
 
             const coverFile = document.getElementById("photoCover").files[0];
@@ -95,29 +79,18 @@ async function addProduct(){
                 return;
             }
 
-            // 🔥 LIMIT CHECK
-            if(previewFiles.length > 6){
-                alert("Max 6 preview images allowed");
-                return;
-            }
-
-            const coverURL = await uploadToCloudinary(coverFile);
-            const originalURL = await uploadToCloudinary(originalFile);
+            product.cover = await uploadToCloudinary(coverFile);
+            product.original = await uploadToCloudinary(originalFile);
 
             let previewURLs = [];
 
-            if(previewFiles.length){
-                for(let file of previewFiles){
-                    previewURLs.push(await uploadToCloudinary(file));
-                }
+            for(let file of previewFiles){
+                previewURLs.push(await uploadToCloudinary(file));
             }
 
-            product.cover = coverURL;
-            product.original = originalURL;
-            product.preview = previewURLs.length ? previewURLs : [coverURL];
+            product.preview = previewURLs.length ? previewURLs : [product.cover];
         }
 
-        // ================= PACK =================
         else{
 
             const previewFiles = document.getElementById("packPreview").files;
@@ -128,28 +101,31 @@ async function addProduct(){
                 return;
             }
 
-            // 🔥 LIMIT CHECK
-            if(previewFiles.length > 6){
-                alert("Max 6 preview images allowed");
-                return;
-            }
-
             let previewURLs = [];
 
             for(let file of previewFiles){
                 previewURLs.push(await uploadToCloudinary(file));
             }
 
-            const zipURL = await uploadZip(zipFile);
-
             product.preview = previewURLs;
             product.cover = previewURLs[0] || "";
-            product.zip = zipURL;
+            product.zip = await uploadZip(zipFile);
         }
 
-        // ================= SEND =================
-        const res = await fetch(API + "/add-product", {
-            method:"POST",
+        // =========================
+        // 🔥 CREATE OR UPDATE LOGIC
+        // =========================
+
+        let url = API + "/add-product";
+        let method = "POST";
+
+        if(editId){
+            url = API + "/update-product/" + editId;
+            method = "PUT";
+        }
+
+        const res = await fetch(url, {
+            method,
             headers:{ "Content-Type":"application/json" },
             body: JSON.stringify(product)
         });
@@ -158,7 +134,8 @@ async function addProduct(){
 
         if(data.success){
             alert("✅ Saved!");
-            editId = null;
+
+            editId = null; // 🔥 RESET
             loadProducts();
         }else{
             alert("❌ Failed");
@@ -191,25 +168,6 @@ async function deleteProduct(id){
 }
 
 // =========================
-// EDIT
-// =========================
-function editProduct(p){
-
-    document.getElementById("title").value = p.title;
-    document.getElementById("price").value = p.price;
-    document.getElementById("description").value = p.description;
-
-    document.querySelector(`input[value="${p.type}"]`).checked = true;
-
-    document.querySelectorAll(".category-box input").forEach(c=>{
-        c.checked = p.category?.includes(c.value);
-    });
-
-    editId = p.id;
-    updateModeUI();
-}
-
-// =========================
 // RENDER
 // =========================
 function renderProducts(products){
@@ -227,27 +185,14 @@ function renderProducts(products){
             </div>
 
             <div>
-                <button class="action-btn edit-btn"
-                onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
-
-                <button class="action-btn delete-btn"
-                onclick='deleteProduct("${p.id}")'>Delete</button>
+                <button onclick='deleteProduct("${p.id}")'>Delete</button>
             </div>
         </div>`;
     });
 }
 
-// =========================
 // INIT
-// =========================
 document.addEventListener("DOMContentLoaded", ()=>{
-
     loadProducts();
-    updateModeUI();
-
     document.getElementById("saveBtn").addEventListener("click", addProduct);
-
-    document.querySelectorAll('input[name="type"]').forEach(r=>{
-        r.addEventListener("change", updateModeUI);
-    });
 });

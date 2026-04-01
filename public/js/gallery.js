@@ -1,3 +1,5 @@
+console.log(products);
+
 const API = "https://shaurya-backend.onrender.com";
 
 let allImages = [];

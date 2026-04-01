@@ -198,3 +198,21 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log("🚀 Server running on port " + PORT);
 });
+
+// =========================
+// UPDATE PRODUCT
+// =========================
+app.put("/update-product/:id", async (req, res) => {
+    try {
+        await Product.updateOne(
+            { id: req.params.id },
+            req.body
+        );
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error(err);
+        res.json({ success: false });
+    }
+});
