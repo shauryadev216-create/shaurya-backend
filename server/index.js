@@ -110,7 +110,7 @@ app.post("/create-order", async (req, res) => {
                 },
 
                 order_meta: {
-                    return_url: `https://verdant-speculoos-e2aac1.netlify.app/product-template.html?id=${id}&order_id=${orderId}`
+                    return_url: `https://lucky-tanuki-5a6c34.netlify.app/product-template.html?id=${id}&order_id=${orderId}`
                 }
             },
             {

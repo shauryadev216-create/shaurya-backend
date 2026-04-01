@@ -1,38 +1,46 @@
-console.log(products);
-
 const API = "https://shaurya-backend.onrender.com";
 
 let allImages = [];
 let currentCategory = "all";
 
+// =========================
+// LOAD GALLERY
+// =========================
 async function loadGallery(){
 
-    const res = await fetch(API + "/products");
-    const products = await res.json();
+    try{
 
-    allImages = [];
+        const res = await fetch(API + "/products");
+        const products = await res.json(); // ✅ NOW defined
 
-    products.forEach(product => {
+        console.log("Products:", products);
 
-        // 🔥 LOOP ALL PREVIEW IMAGES
-        if(product.preview && product.preview.length){
+        allImages = [];
 
-            product.preview.forEach(img => {
+        products.forEach(product => {
 
-                allImages.push({
-                    img: img,
-                    title: product.title,
-                    category: product.category || [],
-                    id: product._id
+            if(product.preview && product.preview.length){
+
+                product.preview.forEach(img => {
+
+                    allImages.push({
+                        img: img,
+                        title: product.title,
+                        category: product.category || [],
+                        id: product._id
+                    });
+
                 });
 
-            });
+            }
 
-        }
+        });
 
-    });
+        renderGallery(allImages);
 
-    renderGallery(allImages);
+    }catch(err){
+        console.error("Gallery error:", err);
+    }
 }
 
 // =========================
@@ -56,7 +64,7 @@ function renderGallery(images){
 
             <img src="${item.img}">
 
-            <div style="padding:8px 5px; font-size:13px;">
+            <div class="gallery-title">
                 ${item.title}
             </div>
 
@@ -81,7 +89,7 @@ document.getElementById("searchBox").addEventListener("input", function(){
 });
 
 // =========================
-// CATEGORY FILTER
+// FILTER
 // =========================
 function filterCategory(cat){
 
