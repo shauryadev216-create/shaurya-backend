@@ -36,7 +36,7 @@ async function uploadZip(file){
 let editId = null;
 
 // =========================
-// ADD PRODUCT
+// ADD / UPDATE PRODUCT
 // =========================
 async function addProduct(){
 
@@ -58,7 +58,7 @@ async function addProduct(){
         }
 
         let product = {
-            id: editId || Date.now().toString(), // 🔥 KEY FIX
+            id: editId || Date.now().toString(),
             title,
             price: Number(price),
             description,
@@ -66,56 +66,61 @@ async function addProduct(){
             type
         };
 
-        // ================= FILE LOGIC (same as before) =================
-
+        // ================= PHOTO =================
         if(type === "photo"){
 
-            const coverFile = document.getElementById("photoCover").files[0];
+            const coverFiles = document.getElementById("photoCover").files;
             const originalFile = document.getElementById("photoOriginal").files[0];
-            const previewFiles = document.getElementById("packPreview").files;
 
-            if(!coverFile || !originalFile){
+            if(!coverFiles.length || !originalFile){
                 alert("Upload cover & HD image");
                 return;
             }
 
-            product.cover = await uploadToCloudinary(coverFile);
-            product.original = await uploadToCloudinary(originalFile);
-
+            // 🔥 MULTIPLE PREVIEW IMAGES
             let previewURLs = [];
 
-            for(let file of previewFiles){
-                previewURLs.push(await uploadToCloudinary(file));
+            for(let file of coverFiles){
+                const url = await uploadToCloudinary(file);
+                previewURLs.push(url);
             }
 
-            product.preview = previewURLs.length ? previewURLs : [product.cover];
+            // 🔥 MAIN COVER = FIRST IMAGE
+            product.cover = previewURLs[0];
+
+            // 🔥 ALL IMAGES = PREVIEW
+            product.preview = previewURLs;
+
+            // 🔥 ORIGINAL HD
+            product.original = await uploadToCloudinary(originalFile);
         }
 
+        // ================= PACK =================
         else{
 
             const previewFiles = document.getElementById("packPreview").files;
             const zipFile = document.getElementById("packZip").files[0];
 
-            if(!zipFile){
-                alert("Upload ZIP file");
+            if(!previewFiles.length || !zipFile){
+                alert("Upload preview images & ZIP");
                 return;
             }
 
             let previewURLs = [];
 
             for(let file of previewFiles){
-                previewURLs.push(await uploadToCloudinary(file));
+                const url = await uploadToCloudinary(file);
+                previewURLs.push(url);
             }
 
             product.preview = previewURLs;
-            product.cover = previewURLs[0] || "";
+            product.cover = previewURLs[0];
             product.zip = await uploadZip(zipFile);
         }
 
         // =========================
-        // 🔥 CREATE OR UPDATE LOGIC
+        // CREATE OR UPDATE
         // =========================
-
         let url = API + "/add-product";
         let method = "POST";
 
@@ -135,7 +140,9 @@ async function addProduct(){
         if(data.success){
             alert("✅ Saved!");
 
-            editId = null; // 🔥 RESET
+            editId = null;
+            document.getElementById("saveBtn").textContent = "Save Product";
+
             loadProducts();
         }else{
             alert("❌ Failed");
@@ -168,6 +175,26 @@ async function deleteProduct(id){
 }
 
 // =========================
+// EDIT
+// =========================
+function editProduct(p){
+
+    document.getElementById("title").value = p.title;
+    document.getElementById("price").value = p.price;
+    document.getElementById("description").value = p.description;
+
+    document.querySelector(`input[value="${p.type}"]`).checked = true;
+
+    document.querySelectorAll(".category-box input").forEach(c=>{
+        c.checked = p.category?.includes(c.value);
+    });
+
+    editId = p.id || p._id;
+
+    document.getElementById("saveBtn").textContent = "Update Product";
+}
+
+// =========================
 // RENDER
 // =========================
 function renderProducts(products){
@@ -176,18 +203,32 @@ function renderProducts(products){
     box.innerHTML = "";
 
     products.forEach(p=>{
+
         box.innerHTML += `
         <div class="admin-card">
+
             <div>
                 <b>${p.title}</b><br>
                 $${p.price}<br>
                 ${p.type}
             </div>
 
-            <div>
-                <button onclick='deleteProduct("${p.id}")'>Delete</button>
+            <div style="display:flex; gap:10px;">
+
+                <button class="action-btn edit-btn"
+                onclick='editProduct(${JSON.stringify(p)})'>
+                Edit
+                </button>
+
+                <button class="action-btn delete-btn"
+                onclick='deleteProduct("${p.id || p._id}")'>
+                Delete
+                </button>
+
             </div>
-        </div>`;
+
+        </div>
+        `;
     });
 }
 
