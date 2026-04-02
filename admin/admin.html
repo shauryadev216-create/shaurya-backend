@@ -13,7 +13,7 @@ body{
 }
 
 .admin-container{
-    max-width:850px;
+    max-width:900px;
     margin:50px auto;
     background:#fff;
     padding:35px;
@@ -31,19 +31,83 @@ body{
     font-size:14px;
 }
 
-/* 🔥 MULTILINE SUPPORT */
-.admin-container textarea{
+/* ================= TYPE TOGGLE ================= */
+.type-box{
+    display:flex;
+    gap:10px;
+    margin:20px 0;
+}
+
+.type-box label{
+    flex:1;
+    cursor:pointer;
+}
+
+.type-box span{
+    display:block;
+    text-align:center;
+    padding:14px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    transition:0.2s;
+}
+
+.type-box input{
+    display:none;
+}
+
+.type-box input:checked + span{
+    background:#111;
+    color:#fff;
+}
+
+/* ================= CATEGORY ================= */
+.category-box{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:20px 0;
+}
+
+.category-box span{
+    padding:8px 14px;
+    border:1px solid #ddd;
+    border-radius:20px;
+    font-size:13px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.category-box input{
+    display:none;
+}
+
+.category-box input:checked + span{
+    background:#111;
+    color:#fff;
+}
+
+/* ================= SECTIONS ================= */
+.section{
+    border:1px solid #eee;
+    padding:18px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+.section h4{
+    margin-bottom:10px;
+    font-size:14px;
+    color:#666;
+}
+
+/* ================= TEXTAREA ================= */
+textarea{
     min-height:160px;
     resize:vertical;
 }
 
-/* DISCOUNT */
-.discount-preview{
-    font-size:14px;
-    margin-bottom:15px;
-}
-
-/* BUTTON */
+/* ================= BUTTON ================= */
 .btn-save{
     width:100%;
     padding:16px;
@@ -55,15 +119,14 @@ body{
     transition:0.2s;
 }
 
-/* CLICK ANIMATION */
 .btn-save:active,
 .action-btn:active{
     transform:scale(0.95);
 }
 
-/* LIST */
+/* ================= LIST ================= */
 .admin-list{
-    max-width:850px;
+    max-width:900px;
     margin:30px auto;
 }
 
@@ -103,15 +166,22 @@ body{
 <input id="originalPrice" placeholder="Original Price ($)">
 <input id="price" placeholder="Discount Price ($)">
 
-<div id="discountPreview" class="discount-preview"></div>
+<textarea id="description" placeholder="Description"></textarea>
 
-<textarea id="description" placeholder="Write description with ENTER for new lines..."></textarea>
-
+<!-- TYPE -->
 <div class="type-box">
-<label><input type="radio" name="type" value="photo" checked><span>Photo</span></label>
-<label><input type="radio" name="type" value="pack"><span>Pack</span></label>
+<label>
+<input type="radio" name="type" value="photo" checked>
+<span>📸 Photo</span>
+</label>
+
+<label>
+<input type="radio" name="type" value="pack">
+<span>📦 Pack</span>
+</label>
 </div>
 
+<!-- CATEGORY -->
 <div class="category-box">
 <label><input type="checkbox" value="nature"><span>Nature</span></label>
 <label><input type="checkbox" value="cinematic"><span>Cinematic</span></label>
@@ -123,24 +193,22 @@ body{
 <label><input type="checkbox" value="abstract"><span>Abstract</span></label>
 </div>
 
-<div class="field photo-field">
-<p>Photo Cover</p>
+<!-- PHOTO SECTION -->
+<div class="section photo-field">
+<h4>📸 Photo Upload</h4>
+
 <input type="file" id="photoCover">
-</div>
-
-<div class="field photo-field">
-<p>Photo HD</p>
 <input type="file" id="photoOriginal">
+
 </div>
 
-<div class="field pack-field">
-<p>Pack Preview</p>
+<!-- PACK SECTION -->
+<div class="section pack-field">
+<h4>📦 Pack Upload</h4>
+
 <input type="file" id="packPreview" multiple>
-</div>
-
-<div class="field pack-field">
-<p>Pack ZIP</p>
 <input type="file" id="packZip">
+
 </div>
 
 <button id="saveBtn" class="btn-save">Save Product</button>

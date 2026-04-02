@@ -25,8 +25,10 @@ async function uploadToCloudinary(file){
 // =========================
 function formatDescription(text){
     return text
-        .replace(/\n/g, "<br>")  // ENTER → new line
-        .replace(/•/g, "<br>•"); // bullets spacing
+        function formatDescription(text){
+    return text
+        .replace(/\r?\n/g, "<br><br>"); // double spacing like real paragraphs
+}
 }
 
 // =========================
