@@ -160,7 +160,7 @@ function renderProducts(products){
             <div>
                 <b>${p.title}</b><br>
                 ${p.originalPrice ? `<s>$${p.originalPrice}</s>` : ""}
-                $${p.price}
+                ₹${p.price}
                 ${discountHTML}
             </div>
 

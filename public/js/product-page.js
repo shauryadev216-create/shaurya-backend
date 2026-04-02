@@ -43,7 +43,7 @@ function renderProducts(list){
             <img src="${previews[0]}" class="shop-img" onclick='openViewer(${JSON.stringify(previews)})'>
 
             <h3>${p.title}</h3>
-            <p>$${p.price}</p>
+            <p>₹${p.price}</p>
 
             <a href="product-template.html?id=${p._id}" class="view-pack-btn">
                 View Product

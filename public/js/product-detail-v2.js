@@ -53,7 +53,7 @@ async function loadProduct() {
             priceBox.innerHTML = `
                 <div style="display:flex; align-items:center; gap:8px;">
                     <span style="text-decoration:line-through; color:#888;">
-                        $${original}
+                        ₹${original}
                     </span>
                     <span style="color:#ff4d4d; font-size:14px;">
                         ${discount}% OFF
@@ -61,11 +61,11 @@ async function loadProduct() {
                 </div>
 
                 <div style="font-size:26px; font-weight:600;">
-                    $${price}
+                    ₹${price}
                 </div>
             `;
         }else{
-            priceBox.textContent = "$" + price;
+            priceBox.textContent = "₹" + price;
         }
 
         // MAIN IMAGE
