@@ -22,7 +22,7 @@ function formatDescription(text){
     return text.replace(/\r?\n/g, "<br><br>");
 }
 
-// ================= DISCOUNT PREVIEW =================
+// ================= DISCOUNT =================
 function updateDiscount(){
     const original = parseFloat(document.getElementById("originalPrice").value);
     const price = parseFloat(document.getElementById("price").value);
@@ -37,7 +37,7 @@ function updateDiscount(){
     }
 }
 
-// ================= ADD PRODUCT =================
+// ================= ADD / UPDATE PRODUCT =================
 async function addProduct(){
 
     try{
@@ -66,32 +66,50 @@ async function addProduct(){
             type
         };
 
+        // ================= FILE HANDLING =================
         if(type === "photo"){
-            const cover = document.getElementById("photoCover").files[0];
-            const original = document.getElementById("photoOriginal").files[0];
 
-            product.cover = await uploadToCloudinary(cover);
-            product.original = await uploadToCloudinary(original);
-            product.preview = [product.cover];
-        }
+            const coverFile = document.getElementById("photoCover").files[0];
+            const originalFile = document.getElementById("photoOriginal").files[0];
 
-        else{
+            // ⚠️ ONLY upload if new files selected
+            if(coverFile){
+                product.cover = await uploadToCloudinary(coverFile);
+            }
+            if(originalFile){
+                product.original = await uploadToCloudinary(originalFile);
+            }
+
+        } else {
+
             const previewFiles = document.getElementById("packPreview").files;
             const zipFile = document.getElementById("packZip").files[0];
 
-            let previews = [];
-
-            for(let file of previewFiles){
-                previews.push(await uploadToCloudinary(file));
+            if(previewFiles.length){
+                let previews = [];
+                for(let file of previewFiles){
+                    previews.push(await uploadToCloudinary(file));
+                }
+                product.preview = previews;
+                product.cover = previews[0] || "";
             }
 
-            product.preview = previews;
-            product.cover = previews[0] || "";
-            product.zip = await uploadToCloudinary(zipFile);
+            if(zipFile){
+                product.zip = await uploadToCloudinary(zipFile);
+            }
         }
 
-        const res = await fetch(API + "/add-product", {
-            method:"POST",
+        // ================= 🔥 MAIN FIX =================
+        let url = API + "/add-product";
+        let method = "POST";
+
+        if(editId){
+            url = API + "/update-product/" + editId;
+            method = "PUT";
+        }
+
+        const res = await fetch(url, {
+            method,
             headers:{ "Content-Type":"application/json" },
             body: JSON.stringify(product)
         });
@@ -100,7 +118,10 @@ async function addProduct(){
 
         if(data.success){
             alert("✅ Saved!");
+
             editId = null;
+            document.getElementById("saveBtn").textContent = "Save Product";
+
             loadProducts();
         }
 
@@ -133,6 +154,12 @@ function editProduct(p){
     document.getElementById("description").value =
         (p.description || "").replace(/<br><br>/g,"\n");
 
+    document.querySelector(`input[value="${p.type}"]`).checked = true;
+
+    document.querySelectorAll(".category-box input").forEach(c=>{
+        c.checked = p.category?.includes(c.value);
+    });
+
     editId = p.id || p._id;
 
     document.getElementById("saveBtn").textContent = "Update Product";
@@ -159,7 +186,7 @@ function renderProducts(products){
         <div class="admin-card">
             <div>
                 <b>${p.title}</b><br>
-                ${p.originalPrice ? `<s>$${p.originalPrice}</s>` : ""}
+                ${p.originalPrice ? `<s>₹${p.originalPrice}</s>` : ""}
                 ₹${p.price}
                 ${discountHTML}
             </div>
