@@ -22,29 +22,14 @@ function formatDescription(text){
     return text.replace(/\r?\n/g, "<br><br>");
 }
 
-// ================= DISCOUNT =================
-function updateDiscount(){
-    const original = parseFloat(document.getElementById("originalPrice").value);
-    const price = parseFloat(document.getElementById("price").value);
-
-    const box = document.getElementById("discountPreview");
-
-    if(original && price && original > price){
-        const percent = Math.round(((original - price)/original)*100);
-        box.innerHTML = `🔥 ${percent}% OFF`;
-    }else{
-        box.innerHTML = "";
-    }
-}
-
-// ================= ADD / UPDATE PRODUCT =================
+// ================= ADD / UPDATE =================
 async function addProduct(){
 
     try{
 
         const title = document.getElementById("title").value.trim();
-        const price = document.getElementById("price").value.trim();
-        const originalPrice = document.getElementById("originalPrice").value.trim();
+        const price = parseFloat(document.getElementById("price").value);
+        const originalPrice = parseFloat(document.getElementById("originalPrice").value);
         const rawDescription = document.getElementById("description").value;
 
         const description = formatDescription(rawDescription);
@@ -56,29 +41,30 @@ async function addProduct(){
             category.push(c.value);
         });
 
+        // 🔥 CALCULATE DISCOUNT
+        let discount = 0;
+        if(originalPrice && price && originalPrice > price){
+            discount = Math.round(((originalPrice - price)/originalPrice)*100);
+        }
+
         let product = {
             id: editId || Date.now().toString(),
             title,
-            price: Number(price),
-            originalPrice: Number(originalPrice) || 0,
+            price,
+            originalPrice: originalPrice || 0,
+            discount,
             description,
             category,
             type
         };
 
-        // ================= FILE HANDLING =================
+        // FILES
         if(type === "photo"){
+            const cover = document.getElementById("photoCover").files[0];
+            const original = document.getElementById("photoOriginal").files[0];
 
-            const coverFile = document.getElementById("photoCover").files[0];
-            const originalFile = document.getElementById("photoOriginal").files[0];
-
-            // ⚠️ ONLY upload if new files selected
-            if(coverFile){
-                product.cover = await uploadToCloudinary(coverFile);
-            }
-            if(originalFile){
-                product.original = await uploadToCloudinary(originalFile);
-            }
+            if(cover) product.cover = await uploadToCloudinary(cover);
+            if(original) product.original = await uploadToCloudinary(original);
 
         } else {
 
@@ -91,7 +77,7 @@ async function addProduct(){
                     previews.push(await uploadToCloudinary(file));
                 }
                 product.preview = previews;
-                product.cover = previews[0] || "";
+                product.cover = previews[0];
             }
 
             if(zipFile){
@@ -99,7 +85,7 @@ async function addProduct(){
             }
         }
 
-        // ================= 🔥 MAIN FIX =================
+        // 🔥 UPDATE OR CREATE
         let url = API + "/add-product";
         let method = "POST";
 
@@ -118,10 +104,8 @@ async function addProduct(){
 
         if(data.success){
             alert("✅ Saved!");
-
             editId = null;
             document.getElementById("saveBtn").textContent = "Save Product";
-
             loadProducts();
         }
 
@@ -129,19 +113,6 @@ async function addProduct(){
         console.error(err);
         alert("Error ❌");
     }
-}
-
-// ================= LOAD =================
-async function loadProducts(){
-    const res = await fetch(API + "/products");
-    const products = await res.json();
-    renderProducts(products);
-}
-
-// ================= DELETE =================
-async function deleteProduct(id){
-    await fetch(API + "/delete-product/" + id, { method:"DELETE" });
-    loadProducts();
 }
 
 // ================= EDIT =================
@@ -161,10 +132,20 @@ function editProduct(p){
     });
 
     editId = p.id || p._id;
-
     document.getElementById("saveBtn").textContent = "Update Product";
+}
 
-    updateDiscount();
+// ================= LOAD =================
+async function loadProducts(){
+    const res = await fetch(API + "/products");
+    const products = await res.json();
+    renderProducts(products);
+}
+
+// ================= DELETE =================
+async function deleteProduct(id){
+    await fetch(API + "/delete-product/" + id, { method:"DELETE" });
+    loadProducts();
 }
 
 // ================= RENDER =================
@@ -175,39 +156,28 @@ function renderProducts(products){
 
     products.forEach(p=>{
 
-        let discountHTML = "";
-
-        if(p.originalPrice && p.originalPrice > p.price){
-            const percent = Math.round(((p.originalPrice - p.price)/p.originalPrice)*100);
-            discountHTML = ` (${percent}% OFF)`;
-        }
-
         box.innerHTML += `
         <div class="admin-card">
             <div>
                 <b>${p.title}</b><br>
+
+                ${p.discount ? `<span style="color:red">-${p.discount}%</span>` : ""}
+
                 ${p.originalPrice ? `<s>₹${p.originalPrice}</s>` : ""}
-                ₹${p.price}
-                ${discountHTML}
+
+                <b>₹${p.price}</b>
             </div>
 
             <div style="display:flex; gap:10px;">
-                <button class="action-btn edit-btn"
-                onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
-
-                <button class="action-btn delete-btn"
-                onclick='deleteProduct("${p.id || p._id}")'>Delete</button>
+                <button onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
+                <button onclick='deleteProduct("${p.id || p._id}")'>Delete</button>
             </div>
         </div>`;
     });
 }
 
-// ================= INIT =================
+// INIT
 document.addEventListener("DOMContentLoaded", ()=>{
     loadProducts();
-
     document.getElementById("saveBtn").addEventListener("click", addProduct);
-
-    document.getElementById("originalPrice").addEventListener("input", updateDiscount);
-    document.getElementById("price").addEventListener("input", updateDiscount);
 });

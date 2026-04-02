@@ -7,14 +7,6 @@ const orderId = params.get("order_id");
 let productData = null;
 
 // ==========================
-// FORMAT DESCRIPTION (SAFE)
-// ==========================
-function formatDescription(text){
-    if(!text) return "";
-    return text.replace(/\n/g, "<br>");
-}
-
-// ==========================
 // LOAD PRODUCT
 // ==========================
 async function loadProduct() {
@@ -31,16 +23,14 @@ async function loadProduct() {
 
         productData = product;
 
-        // TITLE
+        // ================= TITLE =================
         document.getElementById("title").textContent = product.title;
 
-        // ✅ FIXED DESCRIPTION
+        // ================= DESCRIPTION (FIXED PERFECTLY) =================
         document.getElementById("description").innerHTML =
-            formatDescription(product.description);
+            product.description || "";
 
-        // ==========================
-        // ✅ PRICE SYSTEM (SAFE ADD)
-        // ==========================
+        // ================= PRICE SYSTEM (FINAL FIX) =================
         const priceBox = document.getElementById("price");
 
         const price = Number(product.price);
@@ -51,43 +41,42 @@ async function loadProduct() {
             const discount = Math.round(((original - price) / original) * 100);
 
             priceBox.innerHTML = `
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
+                    <span style="color:#ff4d4d; font-weight:600;">
+                        -${discount}%
+                    </span>
+
                     <span style="text-decoration:line-through; color:#888;">
                         ₹${original}
                     </span>
-                    <span style="color:#ff4d4d; font-size:14px;">
-                        ${discount}% OFF
-                    </span>
                 </div>
 
-                <div style="font-size:26px; font-weight:600;">
+                <div style="font-size:26px; font-weight:700;">
                     ₹${price}
                 </div>
             `;
         }else{
-            priceBox.textContent = "₹" + price;
+            priceBox.innerHTML = `<b style="font-size:26px;">₹${price}</b>`;
         }
 
-        // MAIN IMAGE
+        // ================= MAIN IMAGE =================
         document.getElementById("mainImage").src = product.cover;
 
-        // ==========================
-        // PREVIEW IMAGES (UNCHANGED)
-        // ==========================
+        // ================= PREVIEW IMAGES =================
         const previewRow = document.getElementById("previewRow");
 
         if (previewRow && product.preview && product.preview.length) {
 
             previewRow.innerHTML = "";
 
-            product.preview.forEach(img => {
+            product.preview.forEach((img, index) => {
                 previewRow.innerHTML += `
                     <img src="${img}" onclick="changeImage('${img}')">
                 `;
             });
         }
 
-        // PAYMENT RETURN
+        // ================= PAYMENT RETURN =================
         if (orderId) {
             verifyPaymentAndDownload();
         }
@@ -98,10 +87,14 @@ async function loadProduct() {
 }
 
 // ==========================
+// CHANGE IMAGE
+// ==========================
 function changeImage(src) {
     document.getElementById("mainImage").src = src;
 }
 
+// ==========================
+// VERIFY PAYMENT
 // ==========================
 async function verifyPaymentAndDownload() {
     try {
@@ -128,6 +121,8 @@ async function verifyPaymentAndDownload() {
     }
 }
 
+// ==========================
+// DOWNLOAD UI
 // ==========================
 function showDownloadUI() {
 
@@ -156,6 +151,8 @@ function showDownloadUI() {
     }, 1000);
 }
 
+// ==========================
+// DOWNLOAD FILE
 // ==========================
 function startDownload() {
 
@@ -197,6 +194,8 @@ function startDownload() {
         });
 }
 
+// ==========================
+// INIT
 // ==========================
 document.addEventListener("DOMContentLoaded", () => {
 
