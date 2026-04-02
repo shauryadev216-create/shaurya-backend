@@ -7,6 +7,14 @@ const orderId = params.get("order_id");
 let productData = null;
 
 // ==========================
+// FORMAT DESCRIPTION (SAFE)
+// ==========================
+function formatDescription(text){
+    if(!text) return "";
+    return text.replace(/\n/g, "<br>");
+}
+
+// ==========================
 // LOAD PRODUCT
 // ==========================
 async function loadProduct() {
@@ -23,16 +31,48 @@ async function loadProduct() {
 
         productData = product;
 
-        // BASIC INFO
+        // TITLE
         document.getElementById("title").textContent = product.title;
-        document.getElementById("description").textContent = product.description || "";
-        document.getElementById("price").textContent = "$" + product.price;
+
+        // ✅ FIXED DESCRIPTION
+        document.getElementById("description").innerHTML =
+            formatDescription(product.description);
+
+        // ==========================
+        // ✅ PRICE SYSTEM (SAFE ADD)
+        // ==========================
+        const priceBox = document.getElementById("price");
+
+        const price = Number(product.price);
+        const original = Number(product.originalPrice || 0);
+
+        if(original && original > price){
+
+            const discount = Math.round(((original - price) / original) * 100);
+
+            priceBox.innerHTML = `
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="text-decoration:line-through; color:#888;">
+                        $${original}
+                    </span>
+                    <span style="color:#ff4d4d; font-size:14px;">
+                        ${discount}% OFF
+                    </span>
+                </div>
+
+                <div style="font-size:26px; font-weight:600;">
+                    $${price}
+                </div>
+            `;
+        }else{
+            priceBox.textContent = "$" + price;
+        }
 
         // MAIN IMAGE
         document.getElementById("mainImage").src = product.cover;
 
         // ==========================
-        // PREVIEW IMAGES (🔥 FIXED)
+        // PREVIEW IMAGES (UNCHANGED)
         // ==========================
         const previewRow = document.getElementById("previewRow");
 
@@ -47,7 +87,7 @@ async function loadProduct() {
             });
         }
 
-        // 🔥 IF RETURNED FROM PAYMENT
+        // PAYMENT RETURN
         if (orderId) {
             verifyPaymentAndDownload();
         }
@@ -58,14 +98,10 @@ async function loadProduct() {
 }
 
 // ==========================
-// CHANGE IMAGE (THUMB CLICK)
-// ==========================
 function changeImage(src) {
     document.getElementById("mainImage").src = src;
 }
 
-// ==========================
-// VERIFY PAYMENT + DOWNLOAD
 // ==========================
 async function verifyPaymentAndDownload() {
     try {
@@ -93,8 +129,6 @@ async function verifyPaymentAndDownload() {
 }
 
 // ==========================
-// SHOW DOWNLOAD SYSTEM
-// ==========================
 function showDownloadUI() {
 
     const btn = document.getElementById("buyBtn");
@@ -103,9 +137,7 @@ function showDownloadUI() {
     btn.onclick = startDownload;
 
     const msg = document.createElement("p");
-    msg.id = "downloadMsg";
     msg.style.marginTop = "10px";
-    msg.style.fontSize = "18px";
     msg.style.color = "green";
 
     document.body.appendChild(msg);
@@ -125,8 +157,6 @@ function showDownloadUI() {
 }
 
 // ==========================
-// DOWNLOAD FILE
-// ==========================
 function startDownload() {
 
     if (!productData) {
@@ -137,26 +167,9 @@ function startDownload() {
     let fileUrl = "";
 
     if (productData.type === "photo") {
-
-        if (productData.original) {
-            fileUrl = productData.original;
-        } else {
-            alert("❌ Original image missing!");
-            return;
-        }
-
-    } else if (productData.type === "pack") {
-
-        if (productData.zip) {
-            fileUrl = productData.zip;
-        } else {
-            alert("❌ ZIP file missing!");
-            return;
-        }
-
+        fileUrl = productData.original;
     } else {
-        alert("❌ Invalid product type");
-        return;
+        fileUrl = productData.zip;
     }
 
     fetch(fileUrl)
@@ -184,8 +197,6 @@ function startDownload() {
         });
 }
 
-// ==========================
-// INIT
 // ==========================
 document.addEventListener("DOMContentLoaded", () => {
 
