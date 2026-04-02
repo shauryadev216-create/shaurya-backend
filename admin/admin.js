@@ -2,11 +2,8 @@ const API = "https://shaurya-backend.onrender.com";
 
 let editId = null;
 
-// =========================
-// CLOUDINARY
-// =========================
+// ================= CLOUDINARY =================
 async function uploadToCloudinary(file){
-
     const url = "https://api.cloudinary.com/v1_1/dayaij4yc/auto/upload";
 
     const fd = new FormData();
@@ -20,20 +17,12 @@ async function uploadToCloudinary(file){
     throw new Error("Upload failed");
 }
 
-// =========================
-// 🔥 FORMAT DESCRIPTION (MAIN FIX)
-// =========================
+// ================= DESCRIPTION =================
 function formatDescription(text){
-    return text
-        function formatDescription(text){
-    return text
-        .replace(/\r?\n/g, "<br><br>"); // double spacing like real paragraphs
-}
+    return text.replace(/\r?\n/g, "<br><br>");
 }
 
-// =========================
-// DISCOUNT
-// =========================
+// ================= DISCOUNT PREVIEW =================
 function updateDiscount(){
     const original = parseFloat(document.getElementById("originalPrice").value);
     const price = parseFloat(document.getElementById("price").value);
@@ -48,9 +37,7 @@ function updateDiscount(){
     }
 }
 
-// =========================
-// ADD PRODUCT
-// =========================
+// ================= ADD PRODUCT =================
 async function addProduct(){
 
     try{
@@ -69,17 +56,11 @@ async function addProduct(){
             category.push(c.value);
         });
 
-        let discount = 0;
-        if(originalPrice && price){
-            discount = Math.round(((originalPrice - price)/originalPrice)*100);
-        }
-
         let product = {
             id: editId || Date.now().toString(),
             title,
             price: Number(price),
-            originalPrice: Number(originalPrice) || null,
-            discount,
+            originalPrice: Number(originalPrice) || 0,
             description,
             category,
             type
@@ -129,35 +110,28 @@ async function addProduct(){
     }
 }
 
-// =========================
-// LOAD
-// =========================
+// ================= LOAD =================
 async function loadProducts(){
     const res = await fetch(API + "/products");
     const products = await res.json();
     renderProducts(products);
 }
 
-// =========================
-// DELETE
-// =========================
+// ================= DELETE =================
 async function deleteProduct(id){
     await fetch(API + "/delete-product/" + id, { method:"DELETE" });
     loadProducts();
 }
 
-// =========================
-// EDIT
-// =========================
+// ================= EDIT =================
 function editProduct(p){
 
     document.getElementById("title").value = p.title;
     document.getElementById("price").value = p.price;
     document.getElementById("originalPrice").value = p.originalPrice || "";
 
-    // 🔥 reverse formatting
-    document.getElementById("description").value = p.description
-        .replace(/<br>/g,"\n");
+    document.getElementById("description").value =
+        (p.description || "").replace(/<br><br>/g,"\n");
 
     editId = p.id || p._id;
 
@@ -166,22 +140,28 @@ function editProduct(p){
     updateDiscount();
 }
 
-// =========================
-// RENDER
-// =========================
+// ================= RENDER =================
 function renderProducts(products){
 
     const box = document.getElementById("product-list-admin");
     box.innerHTML = "";
 
     products.forEach(p=>{
+
+        let discountHTML = "";
+
+        if(p.originalPrice && p.originalPrice > p.price){
+            const percent = Math.round(((p.originalPrice - p.price)/p.originalPrice)*100);
+            discountHTML = ` (${percent}% OFF)`;
+        }
+
         box.innerHTML += `
         <div class="admin-card">
             <div>
                 <b>${p.title}</b><br>
                 ${p.originalPrice ? `<s>$${p.originalPrice}</s>` : ""}
                 $${p.price}
-                ${p.discount ? ` (${p.discount}% OFF)` : ""}
+                ${discountHTML}
             </div>
 
             <div style="display:flex; gap:10px;">
@@ -195,7 +175,7 @@ function renderProducts(products){
     });
 }
 
-// INIT
+// ================= INIT =================
 document.addEventListener("DOMContentLoaded", ()=>{
     loadProducts();
 

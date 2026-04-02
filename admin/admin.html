@@ -31,7 +31,7 @@ body{
     font-size:14px;
 }
 
-/* ================= TYPE TOGGLE ================= */
+/* TYPE */
 .type-box{
     display:flex;
     gap:10px;
@@ -49,19 +49,16 @@ body{
     padding:14px;
     border:1px solid #ddd;
     border-radius:10px;
-    transition:0.2s;
 }
 
-.type-box input{
-    display:none;
-}
+.type-box input{ display:none; }
 
 .type-box input:checked + span{
     background:#111;
     color:#fff;
 }
 
-/* ================= CATEGORY ================= */
+/* CATEGORY */
 .category-box{
     display:flex;
     flex-wrap:wrap;
@@ -75,19 +72,16 @@ body{
     border-radius:20px;
     font-size:13px;
     cursor:pointer;
-    transition:0.2s;
 }
 
-.category-box input{
-    display:none;
-}
+.category-box input{ display:none; }
 
 .category-box input:checked + span{
     background:#111;
     color:#fff;
 }
 
-/* ================= SECTIONS ================= */
+/* SECTION */
 .section{
     border:1px solid #eee;
     padding:18px;
@@ -95,19 +89,11 @@ body{
     margin-bottom:20px;
 }
 
-.section h4{
-    margin-bottom:10px;
-    font-size:14px;
-    color:#666;
-}
-
-/* ================= TEXTAREA ================= */
 textarea{
     min-height:160px;
-    resize:vertical;
 }
 
-/* ================= BUTTON ================= */
+/* BUTTON */
 .btn-save{
     width:100%;
     padding:16px;
@@ -116,40 +102,16 @@ textarea{
     border:none;
     border-radius:8px;
     cursor:pointer;
-    transition:0.2s;
 }
 
-.btn-save:active,
-.action-btn:active{
-    transform:scale(0.95);
-}
+.btn-save:active{ transform:scale(0.95); }
 
-/* ================= LIST ================= */
-.admin-list{
-    max-width:900px;
-    margin:30px auto;
+/* DISCOUNT PREVIEW */
+#discountPreview{
+    font-weight:600;
+    color:#ff4d4d;
+    margin-bottom:15px;
 }
-
-.admin-card{
-    background:#fff;
-    padding:18px;
-    border-radius:10px;
-    border:1px solid #eee;
-    margin-bottom:12px;
-    display:flex;
-    justify-content:space-between;
-}
-
-.action-btn{
-    padding:8px 12px;
-    font-size:12px;
-    border:none;
-    cursor:pointer;
-    border-radius:6px;
-}
-
-.edit-btn{ background:#eaeaea; }
-.delete-btn{ background:#ff4d4d; color:#fff; }
 
 </style>
 
@@ -165,6 +127,8 @@ textarea{
 
 <input id="originalPrice" placeholder="Original Price ($)">
 <input id="price" placeholder="Discount Price ($)">
+
+<div id="discountPreview"></div>
 
 <textarea id="description" placeholder="Description"></textarea>
 
@@ -193,22 +157,18 @@ textarea{
 <label><input type="checkbox" value="abstract"><span>Abstract</span></label>
 </div>
 
-<!-- PHOTO SECTION -->
-<div class="section photo-field">
+<!-- PHOTO -->
+<div class="section">
 <h4>📸 Photo Upload</h4>
-
 <input type="file" id="photoCover">
 <input type="file" id="photoOriginal">
-
 </div>
 
-<!-- PACK SECTION -->
-<div class="section pack-field">
+<!-- PACK -->
+<div class="section">
 <h4>📦 Pack Upload</h4>
-
 <input type="file" id="packPreview" multiple>
 <input type="file" id="packZip">
-
 </div>
 
 <button id="saveBtn" class="btn-save">Save Product</button>
