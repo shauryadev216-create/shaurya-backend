@@ -43,7 +43,7 @@ div.innerHTML = `
     <div class="shop-content">
         <span class="shop-tag">${p.type || "product"}</span>
         <h3>${p.title}</h3>
-        <p>$${p.price}</p>
+        <p>₹${p.price}</p>
 
         <div class="shop-footer">
             <a href="product-template.html?id=${p._id}" class="btn-buy">View</a>
