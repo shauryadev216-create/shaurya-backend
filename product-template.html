@@ -9,7 +9,6 @@
 
 <style>
 
-/* ===== PRODUCT LAYOUT ===== */
 .product-container{
     max-width: 1200px;
     margin: 80px auto;
@@ -17,62 +16,39 @@
     display: grid;
     grid-template-columns: 1.2fr 1fr;
     gap: 60px;
-    align-items: start;
 }
 
-/* IMAGE */
 .product-image img{
     width: 100%;
     border-radius: 6px;
     object-fit: cover;
     aspect-ratio: 16/9;
-    cursor: pointer;
 }
 
-/* INFO SIDE */
-.product-info{
-    display: flex;
-    flex-direction: column;
-}
-
-/* TITLE */
 #title{
     font-size: 32px;
     margin-bottom: 12px;
 }
 
-/* DESC */
 #description{
     font-size: 15px;
     color: var(--text-muted);
     margin-bottom: 25px;
+    line-height: 1.7;
 }
 
-/* PRICE */
 #price{
-    font-size: 26px;
-    font-weight: 600;
     margin-bottom: 20px;
 }
 
-/* INPUTS */
 .product-buy input{
     width: 100%;
     padding: 14px;
     margin-bottom: 12px;
     border-radius: 10px;
     border: 1px solid var(--border);
-    font-size: 14px;
-    transition: 0.25s;
 }
 
-.product-buy input:focus{
-    border-color: #111;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
-}
-
-/* BUTTON */
 .buy-btn{
     width: 100%;
     padding: 15px;
@@ -80,42 +56,7 @@
     color: #fff;
     border: none;
     border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-}
-
-.buy-btn:hover{
-    transform: translateY(-2px);
-}
-
-/* LIGHTBOX */
-.lightbox{
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-}
-
-.lightbox img{
-    max-width: 90%;
-    max-height: 90%;
-}
-
-.lightbox.active{
-    display: flex;
-}
-
-/* RESPONSIVE */
-@media(max-width: 900px){
-    .product-container{
-        grid-template-columns: 1fr;
-    }
 }
 
 .preview-row{
@@ -128,14 +69,19 @@
     width: 80px;
     height: 60px;
     object-fit: cover;
-    cursor: pointer;
     border-radius: 6px;
+    cursor: pointer;
     opacity: 0.7;
-    transition: 0.3s;
 }
 
 .preview-row img:hover{
     opacity: 1;
+}
+
+@media(max-width:900px){
+    .product-container{
+        grid-template-columns: 1fr;
+    }
 }
 
 </style>
@@ -144,7 +90,6 @@
 
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
     <div class="logo">MINDLENS</div>
     <div class="nav-links">
@@ -155,22 +100,18 @@
     </div>
 </nav>
 
-<!-- PRODUCT -->
 <div class="product-container">
 
-    <!-- LEFT IMAGE -->
     <div class="product-image">
-    <img id="mainImage">
+        <img id="mainImage">
+        <!-- ✅ FIXED ID -->
+        <div id="previewRow" class="preview-row"></div>
+    </div>
 
-    <div id="previewRow" class="preview-row"></div>
-</div>
-
-    <!-- RIGHT INFO -->
     <div class="product-info">
 
         <h1 id="title"></h1>
-        <p id="description"></p>
-
+        <div id="description"></div>
         <div id="price"></div>
 
         <div class="product-buy">
@@ -183,21 +124,14 @@
 
 </div>
 
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox">
-    <img id="lightboxImg">
-</div>
-
-<!-- FOOTER (YOUR STYLE KEPT) -->
 <footer class="site-footer">
-
 <p class="copyright">
 © 2026 MINDLENS. All rights reserved.
 </p>
 
 <p class="legal">
 Business Name: TRILOKI NATH <br>
-Digital products are licensed for personal and educational use only. Unauthorized redistribution is prohibited.
+Digital products are licensed for personal and Business use only. Unauthorized redistribution is prohibited.
 </p>
 
 <div class="footer-links">
@@ -211,7 +145,6 @@ Digital products are licensed for personal and educational use only. Unauthorize
 <p class="contact-email">
 shauryadev216@gmail.com
 </p>
-
 </footer>
 
 <script src="/public/js/product-detail-v2.js"></script>

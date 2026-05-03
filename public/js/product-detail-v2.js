@@ -7,213 +7,163 @@ const orderId = params.get("order_id");
 let productData = null;
 
 // ==========================
+// SAFE DESCRIPTION
+// ==========================
+function renderDescription(text){
+    if(!text) return "";
+    return text
+        .replace(/\n/g, "<br>")
+        .replace(/<br><br>/g, "<br><br>");
+}
+
+// ==========================
 // LOAD PRODUCT
 // ==========================
 async function loadProduct() {
-    try {
-        const res = await fetch(API + "/products");
-        const products = await res.json();
 
-        const product = products.find(p => String(p._id) === String(id));
+    const res = await fetch(API + "/products");
+    const products = await res.json();
 
-        if (!product) {
-            document.body.innerHTML = "<h1>Product Not Found</h1>";
-            return;
-        }
+    const product = products.find(p => String(p._id) === String(id));
 
-        productData = product;
+    if (!product) {
+        document.body.innerHTML = "<h1>Product Not Found</h1>";
+        return;
+    }
 
-        // ================= TITLE =================
-        document.getElementById("title").textContent = product.title;
+    productData = product;
 
-        // ================= DESCRIPTION (FIXED PERFECTLY) =================
-        document.getElementById("description").innerHTML =
-            product.description || "";
+    // TITLE
+    document.getElementById("title").textContent = product.title;
 
-        // ================= PRICE SYSTEM (FINAL FIX) =================
-        const priceBox = document.getElementById("price");
+    // ✅ DESCRIPTION FIX
+    document.getElementById("description").innerHTML =
+        renderDescription(product.description);
 
-        const price = Number(product.price);
-        const original = Number(product.originalPrice || 0);
+    // ================= PRICE SYSTEM =================
+    const priceBox = document.getElementById("price");
 
-        if(original && original > price){
+    const price = Number(product.price);
+    const original = Number(product.originalPrice || 0);
 
-            const discount = Math.round(((original - price) / original) * 100);
+    if(original && original > price){
 
-            priceBox.innerHTML = `
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
-                    <span style="color:#ff4d4d; font-weight:600;">
-                        -${discount}%
-                    </span>
+        const discount = Math.round(((original - price) / original) * 100);
 
-                    <span style="text-decoration:line-through; color:#888;">
-                        ₹${original}
-                    </span>
-                </div>
+        priceBox.innerHTML = `
+            <div style="display:flex; gap:10px; align-items:center;">
+                <span style="color:#ff4d4d; font-weight:600;">
+                    -${discount}%
+                </span>
 
-                <div style="font-size:26px; font-weight:700;">
-                    ₹${price}
-                </div>
-            `;
-        }else{
-            priceBox.innerHTML = `<b style="font-size:26px;">₹${price}</b>`;
-        }
+                <span style="text-decoration:line-through; color:#888;">
+                    ₹${original}
+                </span>
+            </div>
 
-        // ================= MAIN IMAGE =================
-        document.getElementById("mainImage").src = product.cover;
+            <div style="font-size:28px; font-weight:700;">
+                ₹${price}
+            </div>
+        `;
+    }else{
+        priceBox.innerHTML = `<b style="font-size:28px;">₹${price}</b>`;
+    }
 
-        // ================= PREVIEW IMAGES =================
-        const previewRow = document.getElementById("previewRow");
+    // IMAGE
+    document.getElementById("mainImage").src = product.cover;
 
-        if (previewRow && product.preview && product.preview.length) {
+    // ================= PREVIEW FIX =================
+    const previewRow = document.getElementById("previewRow");
 
-            previewRow.innerHTML = "";
+    if (previewRow && product.preview && product.preview.length){
 
-            product.preview.forEach((img, index) => {
-                previewRow.innerHTML += `
-                    <img src="${img}" onclick="changeImage('${img}')">
-                `;
-            });
-        }
+        previewRow.innerHTML = "";
 
-        // ================= PAYMENT RETURN =================
-        if (orderId) {
-            verifyPaymentAndDownload();
-        }
+        product.preview.forEach(img=>{
+            const el = document.createElement("img");
+            el.src = img;
+            el.onclick = ()=> changeImage(img);
+            previewRow.appendChild(el);
+        });
+    }
 
-    } catch (err) {
-        console.error(err);
+    if (orderId){
+        verifyPaymentAndDownload();
     }
 }
 
 // ==========================
-// CHANGE IMAGE
-// ==========================
-function changeImage(src) {
+function changeImage(src){
     document.getElementById("mainImage").src = src;
 }
 
 // ==========================
-// VERIFY PAYMENT
-// ==========================
-async function verifyPaymentAndDownload() {
-    try {
+async function verifyPaymentAndDownload(){
 
-        const res = await fetch(API + "/verify-payment", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ order_id: orderId })
-        });
+    const res = await fetch(API + "/verify-payment", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ order_id: orderId })
+    });
 
-        const data = await res.json();
+    const data = await res.json();
 
-        if (!data.success) {
-            alert("Payment verification failed ❌");
-            return;
-        }
-
-        showDownloadUI();
-
-    } catch (err) {
-        console.error(err);
+    if(!data.success){
+        alert("Payment failed ❌");
+        return;
     }
+
+    showDownloadUI();
 }
 
 // ==========================
-// DOWNLOAD UI
-// ==========================
-function showDownloadUI() {
+function showDownloadUI(){
 
     const btn = document.getElementById("buyBtn");
 
     btn.textContent = "Download Now";
     btn.onclick = startDownload;
-
-    const msg = document.createElement("p");
-    msg.style.marginTop = "10px";
-    msg.style.color = "green";
-
-    document.body.appendChild(msg);
-
-    let count = 5;
-
-    const interval = setInterval(() => {
-        msg.textContent = `Download starting in ${count}s...`;
-        count--;
-
-        if (count < 0) {
-            clearInterval(interval);
-            startDownload();
-        }
-
-    }, 1000);
 }
 
 // ==========================
-// DOWNLOAD FILE
-// ==========================
-function startDownload() {
+function startDownload(){
 
-    if (!productData) {
-        alert("❌ Product not loaded");
-        return;
-    }
-
-    let fileUrl = "";
-
-    if (productData.type === "photo") {
-        fileUrl = productData.original;
-    } else {
-        fileUrl = productData.zip;
-    }
+    let fileUrl = productData.type === "photo"
+        ? productData.original
+        : productData.zip;
 
     fetch(fileUrl)
         .then(res => res.blob())
         .then(blob => {
 
-            const blobUrl = window.URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
 
-            const link = document.createElement("a");
-            link.href = blobUrl;
+            a.href = url;
+            a.download = productData.title;
 
-            let ext = fileUrl.split(".").pop().split("?")[0];
-            link.download = productData.title + "." + ext;
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            window.URL.revokeObjectURL(blobUrl);
-
-        })
-        .catch(err => {
-            console.error(err);
-            alert("❌ Download failed");
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
         });
 }
 
 // ==========================
-// INIT
-// ==========================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", ()=>{
 
-    const btn = document.getElementById("buyBtn");
+    document.getElementById("buyBtn").onclick = ()=>{
 
-    btn.onclick = function () {
+        const phone = document.getElementById("userPhone").value;
+        const email = document.getElementById("userEmail").value;
 
-    const phone = document.getElementById("userPhone").value;
-    const email = document.getElementById("userEmail").value;
+        if(!phone || !email){
+            alert("Enter details");
+            return;
+        }
 
-    if (!phone || !email) {
-        alert("Enter phone & email");
-        return;
-    }
-
-    window.location.href =
-        `/checkout.html?id=${id}&phone=${phone}&email=${email}`;
-};
+        window.location.href =
+            `/checkout.html?id=${id}&phone=${phone}&email=${email}`;
+    };
 
     loadProduct();
 });

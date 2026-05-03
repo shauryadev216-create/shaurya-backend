@@ -4,8 +4,7 @@ const API = "https://shaurya-backend.onrender.com";
 const params = new URLSearchParams(window.location.search);
 
 const id = params.get("id");
-const phone = params.get("phone");
-const email = params.get("email");
+document.getElementById("email").value = user.email;
 
 let productData = null;
 
@@ -47,7 +46,7 @@ async function loadProduct(){
     document.getElementById("email").value = email || "";
 }
 
-function payNow(){
+async function payNow(){
 
     const phoneVal = document.getElementById("phone").value;
     const emailVal = document.getElementById("email").value;
@@ -57,9 +56,31 @@ function payNow(){
         return;
     }
 
-    // 🔥 THIS IS WHAT CASHFREE EXPECTS
-    window.location.href =
-        `/payment.html?id=${id}&phone=${phoneVal}&email=${emailVal}`;
-}
+    const res = await fetch(API + "/create-order", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+            productId: id,
+            phone: phoneVal,
+            email: emailVal
+        })
+    });
 
+    const data = await res.json();
+
+    if(!data.success){
+        alert("Order failed ❌");
+        return;
+    }
+
+    // 🔥 REDIRECT TO CASHFREE
+    window.location.href = data.payment_link;
+}
+const user = auth.currentUser;
+
+if (!user) {
+    alert("Please login first");
+    window.location.href = "/login.html";
+    return;
+}
 loadProduct();

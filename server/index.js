@@ -87,21 +87,44 @@ app.delete("/delete-product/:id", async (req, res) => {
 });
 
 // =========================
-// CREATE ORDER (🔥 FINAL CLEAN)
+// CREATE ORDER (🔥 FIXED FINAL)
 // =========================
 app.post("/create-order", async (req, res) => {
 
-    const { amount, id, phone, email } = req.body;
-    const orderId = "order_" + Date.now();
-
     try {
 
+        const { productId, phone, email } = req.body;
+
+        if (!productId) {
+            return res.json({ success: false, message: "Missing productId" });
+        }
+
+        // 🔥 GET PRODUCT FROM DB (SECURE PRICE)
+        const product = await Product.findOne({
+            $or: [
+                { id: productId },
+                { _id: productId }
+            ]
+        });
+
+        if (!product) {
+            return res.json({ success: false, message: "Product not found" });
+        }
+
+        const price = Number(product.price);
+
+        // 🔥 ORDER ID
+        const orderId = "order_" + Date.now();
+
+        // =========================
+        // CASHFREE ORDER
+        // =========================
         const response = await axios.post(
             "https://sandbox.cashfree.com/pg/orders",
             {
-                order_amount: Number(amount),
-                order_currency: "INR",
                 order_id: orderId,
+                order_amount: price,
+                order_currency: "INR",
 
                 customer_details: {
                     customer_id: "user_" + Date.now(),
@@ -110,7 +133,7 @@ app.post("/create-order", async (req, res) => {
                 },
 
                 order_meta: {
-                    return_url: `https://precious-horse-789355.netlify.app/product-template.html?id=${id}&order_id=${orderId}`
+                    return_url: `https://precious-horse-789355.netlify.app/product-template.html?id=${product._id}&order_id=${orderId}`
                 }
             },
             {
@@ -123,24 +146,26 @@ app.post("/create-order", async (req, res) => {
             }
         );
 
-        console.log("✅ ORDER CREATED:", response.data);
-
-        // 🔥 SAVE PURCHASE (ONLY AFTER ORDER CREATED)
+        // 🔥 SAVE PURCHASE (ONLY CREATED, NOT PAID YET)
         await Purchase.create({
             user_email: email,
-            product_id: id,
+            product_id: product._id,
             order_id: orderId
         });
 
+        console.log("✅ ORDER CREATED:", orderId);
+
+        // 🔥 IMPORTANT CHANGE
         res.json({
-            payment_session_id: response.data.payment_session_id
+            success: true,
+            payment_link: response.data.payment_link
         });
 
     } catch (err) {
         console.error("❌ ORDER ERROR:", err.response?.data || err.message);
 
-        res.status(500).json({
-            error: err.response?.data || err.message
+        res.json({
+            success: false
         });
     }
 });
@@ -150,9 +175,9 @@ app.post("/create-order", async (req, res) => {
 // =========================
 app.post("/verify-payment", async (req, res) => {
 
-    const { order_id } = req.body;
-
     try {
+
+        const { order_id } = req.body;
 
         const response = await axios.get(
             `https://sandbox.cashfree.com/pg/orders/${order_id}`,
@@ -165,16 +190,15 @@ app.post("/verify-payment", async (req, res) => {
             }
         );
 
-        res.json({
-            success: response.data.order_status === "PAID"
-        });
+        const isPaid = response.data.order_status === "PAID";
+
+        res.json({ success: isPaid });
 
     } catch (err) {
         console.error("❌ VERIFY ERROR:", err.response?.data || err.message);
         res.json({ success: false });
     }
 });
-
 // =========================
 // 🆕 GET USER PURCHASES
 // =========================
