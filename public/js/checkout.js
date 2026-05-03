@@ -3,6 +3,8 @@ const API = "https://shaurya-backend.onrender.com";
 const params = new URLSearchParams(window.location.search);
 
 const id = params.get("id");
+const phone = params.get("phone");
+const email = params.get("email");
 
 let productData = null;
 
@@ -25,87 +27,88 @@ async function loadProduct(){
 
         productData = product;
 
-        // TITLE
         document.getElementById("title").textContent = product.title;
-
-        // IMAGE
         document.getElementById("productImage").src = product.cover;
 
-        // PRICE SYSTEM
+        // PRICE DISPLAY
         const price = Number(product.price);
         const original = Number(product.originalPrice || 0);
 
-        const priceBox = document.getElementById("price");
-
         if(original && original > price){
-
             const discount = Math.round(((original - price)/original)*100);
 
-            priceBox.innerHTML = `
-                <div style="display:flex; gap:10px;">
-                    <span style="color:red;">-${discount}%</span>
-                    <span style="text-decoration:line-through;color:#888;">₹${original}</span>
-                </div>
-                <div style="font-size:22px;font-weight:600;">₹${price}</div>
+            document.getElementById("price").innerHTML = `
+                <span style="text-decoration:line-through;color:#888;">₹${original}</span>
+                <span style="color:red;margin-left:8px;">-${discount}%</span>
+                <br>
+                <b style="font-size:22px;">₹${price}</b>
             `;
         }else{
-            priceBox.innerHTML = `<b>₹${price}</b>`;
+            document.getElementById("price").innerHTML =
+                `<b style="font-size:22px;">₹${price}</b>`;
         }
 
-        // Quantity (default = 1)
-        document.getElementById("qty").textContent = "1";
-
-        // Total
-        document.getElementById("total").textContent = "₹" + price;
+        document.getElementById("phone").value = phone || "";
+        document.getElementById("email").value = email || "";
 
     }catch(err){
-        console.error(err);
+        console.error("LOAD ERROR:", err);
+        alert("Failed to load product ❌");
     }
 }
 
 // ==========================
-// PAYMENT
+// PAY NOW (🔥 FINAL FIX)
 // ==========================
 async function payNow(){
 
     try{
 
-        const phone = document.getElementById("phone").value;
-        const email = document.getElementById("email").value;
+        if(!productData){
+            alert("Product not loaded ❌");
+            return;
+        }
 
-        if(!phone || !email){
+        const phoneVal = document.getElementById("phone").value;
+        const emailVal = document.getElementById("email").value;
+
+        if(!phoneVal || !emailVal){
             alert("Enter phone & email");
             return;
         }
 
-        const btn = document.getElementById("payBtn");
+        const btn = document.querySelector(".pay-btn");
         btn.innerText = "Processing...";
         btn.disabled = true;
 
-        // 🔥 CALL BACKEND
+        // ==========================
+        // CALL BACKEND
+        // ==========================
         const res = await fetch(API + "/create-order", {
             method:"POST",
             headers:{ "Content-Type":"application/json" },
             body: JSON.stringify({
                 amount: productData.price,
                 id: productData._id,
-                phone,
-                email
+                phone: phoneVal,
+                email: emailVal
             })
         });
 
         const data = await res.json();
 
-console.log("FULL RESPONSE:", data); // 👈 ADD THIS
+        console.log("BACKEND RESPONSE:", data);
 
         if(!data.payment_session_id){
-            alert("Payment init failed ❌");
+            alert("Payment init failed ❌\nCheck console");
             btn.innerText = "Proceed to Payment";
             btn.disabled = false;
             return;
         }
 
-        // 🔥 CASHFREE PAYMENT OPEN
+        // ==========================
+        // CASHFREE SDK
+        // ==========================
         const cashfree = Cashfree({
             mode: "sandbox" // change to "production" later
         });
@@ -116,10 +119,10 @@ console.log("FULL RESPONSE:", data); // 👈 ADD THIS
         });
 
     }catch(err){
-        console.error(err);
+        console.error("PAY ERROR:", err);
         alert("Something went wrong ❌");
     }
 }
 
-// INIT
-document.addEventListener("DOMContentLoaded", loadProduct);
+// ==========================
+loadProduct();
