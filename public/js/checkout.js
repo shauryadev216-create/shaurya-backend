@@ -82,11 +82,13 @@ async function payNow(){
         btn.innerText = "Processing...";
         btn.disabled = true;
 
+        // 🔥 CALL BACKEND
         const res = await fetch(API + "/create-order", {
             method:"POST",
             headers:{ "Content-Type":"application/json" },
             body: JSON.stringify({
-                productId: id,
+                amount: productData.price,
+                id: productData._id,
                 phone,
                 email
             })
@@ -94,15 +96,22 @@ async function payNow(){
 
         const data = await res.json();
 
-        if(!data.success){
+        if(!data.payment_session_id){
             alert("Payment init failed ❌");
             btn.innerText = "Proceed to Payment";
             btn.disabled = false;
             return;
         }
 
-        // 🔥 REDIRECT TO CASHFREE
-        window.location.href = data.payment_link;
+        // 🔥 CASHFREE PAYMENT OPEN
+        const cashfree = Cashfree({
+            mode: "sandbox" // change to "production" later
+        });
+
+        cashfree.checkout({
+            paymentSessionId: data.payment_session_id,
+            redirectTarget: "_self"
+        });
 
     }catch(err){
         console.error(err);
