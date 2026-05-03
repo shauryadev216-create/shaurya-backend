@@ -96,6 +96,8 @@ async function payNow(){
 
         const data = await res.json();
 
+console.log("FULL RESPONSE:", data); // 👈 ADD THIS
+
         if(!data.payment_session_id){
             alert("Payment init failed ❌");
             btn.innerText = "Proceed to Payment";
