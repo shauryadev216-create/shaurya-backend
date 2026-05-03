@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Checkout</title>
+
+<link rel="stylesheet" href="public/css/Style.css">
+
+<style>
+.checkout-box{
+    max-width:700px;
+    margin:80px auto;
+    padding:30px;
+    background:#fff;
+    border:1px solid #eee;
+    border-radius:10px;
+}
+
+.checkout-box img{
+    width:100%;
+    border-radius:8px;
+    margin-bottom:15px;
+}
+
+.checkout-box h2{
+    margin-bottom:10px;
+}
+
+.checkout-box p{
+    color:#666;
+    margin-bottom:10px;
+}
+
+.pay-btn{
+    width:100%;
+    padding:16px;
+    background:#111;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    margin-top:20px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="checkout-box">
+
+    <h2>Checkout</h2>
+
+    <img id="productImage">
+
+    <h3 id="title"></h3>
+    <p id="price"></p>
+
+    <input id="phone" placeholder="Phone Number">
+    <input id="email" placeholder="Email">
+
+    <button class="pay-btn" onclick="payNow()">Proceed to Payment</button>
+
+</div>
+
+<script src="public/js/checkout.js"></script>
+
+</body>
+</html>

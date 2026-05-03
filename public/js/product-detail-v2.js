@@ -203,16 +203,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btn.onclick = function () {
 
-        const phone = document.getElementById("userPhone").value;
-        const email = document.getElementById("userEmail").value;
+    const phone = document.getElementById("userPhone").value;
+    const email = document.getElementById("userEmail").value;
 
-        if (!phone || !email) {
-            alert("Enter phone & email");
-            return;
-        }
+    if (!phone || !email) {
+        alert("Enter phone & email");
+        return;
+    }
 
-        window.location.href = `/payment.html?id=${id}&phone=${phone}&email=${email}`;
-    };
+    window.location.href =
+        `/checkout.html?id=${id}&phone=${phone}&email=${email}`;
+};
 
     loadProduct();
 });
