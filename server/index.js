@@ -200,16 +200,39 @@ app.post("/verify-payment", async (req, res) => {
     }
 });
 // =========================
-// 🆕 GET USER PURCHASES
+// GET USER PURCHASES (🔥 FIXED)
 // =========================
 app.get("/my-purchases/:email", async (req, res) => {
+
     try {
+
         const purchases = await Purchase.find({
             user_email: req.params.email
         });
 
-        res.json(purchases);
+        const result = [];
+
+        for (let p of purchases) {
+
+            const product = await Product.findOne({
+                $or: [
+                    { _id: p.product_id },
+                    { id: p.product_id }
+                ]
+            });
+
+            if (product) {
+                result.push({
+                    ...p._doc,
+                    product
+                });
+            }
+        }
+
+        res.json(result);
+
     } catch (err) {
+        console.error(err);
         res.json([]);
     }
 });
