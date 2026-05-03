@@ -1,86 +1,114 @@
-
 const API = "https://shaurya-backend.onrender.com";
 
 const params = new URLSearchParams(window.location.search);
 
 const id = params.get("id");
-document.getElementById("email").value = user.email;
 
 let productData = null;
 
+// ==========================
+// LOAD PRODUCT
+// ==========================
 async function loadProduct(){
 
-    const res = await fetch(API + "/products");
-    const products = await res.json();
+    try{
 
-    const product = products.find(p => String(p._id) === String(id));
+        const res = await fetch(API + "/products");
+        const products = await res.json();
 
-    if(!product){
-        document.body.innerHTML = "Product not found";
-        return;
+        const product = products.find(p => String(p._id) === String(id));
+
+        if(!product){
+            document.body.innerHTML = "Product not found";
+            return;
+        }
+
+        productData = product;
+
+        // TITLE
+        document.getElementById("title").textContent = product.title;
+
+        // IMAGE
+        document.getElementById("productImage").src = product.cover;
+
+        // PRICE SYSTEM
+        const price = Number(product.price);
+        const original = Number(product.originalPrice || 0);
+
+        const priceBox = document.getElementById("price");
+
+        if(original && original > price){
+
+            const discount = Math.round(((original - price)/original)*100);
+
+            priceBox.innerHTML = `
+                <div style="display:flex; gap:10px;">
+                    <span style="color:red;">-${discount}%</span>
+                    <span style="text-decoration:line-through;color:#888;">₹${original}</span>
+                </div>
+                <div style="font-size:22px;font-weight:600;">₹${price}</div>
+            `;
+        }else{
+            priceBox.innerHTML = `<b>₹${price}</b>`;
+        }
+
+        // Quantity (default = 1)
+        document.getElementById("qty").textContent = "1";
+
+        // Total
+        document.getElementById("total").textContent = "₹" + price;
+
+    }catch(err){
+        console.error(err);
     }
-
-    productData = product;
-
-    document.getElementById("title").textContent = product.title;
-    document.getElementById("productImage").src = product.cover;
-
-    // PRICE DISPLAY (with discount)
-    const price = Number(product.price);
-    const original = Number(product.originalPrice || 0);
-
-    if(original && original > price){
-        const discount = Math.round(((original - price)/original)*100);
-
-        document.getElementById("price").innerHTML = `
-            <span style="text-decoration:line-through;color:#888;">₹${original}</span>
-            <span style="color:red;margin-left:8px;">${discount}% OFF</span>
-            <br>
-            <b style="font-size:20px;">₹${price}</b>
-        `;
-    }else{
-        document.getElementById("price").textContent = "₹" + price;
-    }
-
-    document.getElementById("phone").value = phone || "";
-    document.getElementById("email").value = email || "";
 }
 
+// ==========================
+// PAYMENT
+// ==========================
 async function payNow(){
 
-    const phoneVal = document.getElementById("phone").value;
-    const emailVal = document.getElementById("email").value;
+    try{
 
-    if(!phoneVal || !emailVal){
-        alert("Enter phone & email");
-        return;
+        const phone = document.getElementById("phone").value;
+        const email = document.getElementById("email").value;
+
+        if(!phone || !email){
+            alert("Enter phone & email");
+            return;
+        }
+
+        const btn = document.getElementById("payBtn");
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+
+        const res = await fetch(API + "/create-order", {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({
+                productId: id,
+                phone,
+                email
+            })
+        });
+
+        const data = await res.json();
+
+        if(!data.success){
+            alert("Payment init failed ❌");
+            btn.innerText = "Proceed to Payment";
+            btn.disabled = false;
+            return;
+        }
+
+        // 🔥 REDIRECT TO CASHFREE
+        window.location.href = data.payment_link;
+
+    }catch(err){
+        console.error(err);
+        alert("Something went wrong ❌");
     }
-
-    const res = await fetch(API + "/create-order", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-            productId: id,
-            phone: phoneVal,
-            email: emailVal
-        })
-    });
-
-    const data = await res.json();
-
-    if(!data.success){
-        alert("Order failed ❌");
-        return;
-    }
-
-    // 🔥 REDIRECT TO CASHFREE
-    window.location.href = data.payment_link;
 }
-const user = auth.currentUser;
 
-if (!user) {
-    alert("Please login first");
-    window.location.href = "/login.html";
-    return;
-}
-loadProduct();
+// INIT
+document.addEventListener("DOMContentLoaded", loadProduct);
