@@ -104,12 +104,112 @@ function getCategories() {
     const category = [];
 
     document
-        .querySelectorAll(".category-box input[type='checkbox']:checked")
+        .querySelectorAll(
+            ".category-box input[type='checkbox']:checked"
+        )
         .forEach(c => {
             category.push(c.value);
         });
 
     return category;
+}
+
+
+// =====================================================
+// TYPE UI
+// =====================================================
+function updateUploadSections() {
+
+    const selectedType =
+        document.querySelector(
+            'input[name="type"]:checked'
+        )?.value;
+
+    const photoSection =
+        document.getElementById("photoSection");
+
+    const packSection =
+        document.getElementById("packSection");
+
+    const photoCover =
+        document.getElementById("photoCover");
+
+    const photoOriginal =
+        document.getElementById("photoOriginal");
+
+    const packPreview =
+        document.getElementById("packPreview");
+
+    const packZip =
+        document.getElementById("packZip");
+
+
+    if (!photoSection || !packSection) {
+        return;
+    }
+
+
+    // =================================================
+    // PHOTO SELECTED
+    // =================================================
+    if (selectedType === "photo") {
+
+        photoSection.classList.remove("disabled-section");
+        photoSection.classList.add("active-section");
+
+        packSection.classList.remove("active-section");
+        packSection.classList.add("disabled-section");
+
+
+        if (photoCover) {
+            photoCover.disabled = false;
+        }
+
+        if (photoOriginal) {
+            photoOriginal.disabled = false;
+        }
+
+
+        if (packPreview) {
+            packPreview.disabled = true;
+        }
+
+        if (packZip) {
+            packZip.disabled = true;
+        }
+
+    }
+
+
+    // =================================================
+    // PACK SELECTED
+    // =================================================
+    else if (selectedType === "pack") {
+
+        packSection.classList.remove("disabled-section");
+        packSection.classList.add("active-section");
+
+        photoSection.classList.remove("active-section");
+        photoSection.classList.add("disabled-section");
+
+
+        if (photoCover) {
+            photoCover.disabled = true;
+        }
+
+        if (photoOriginal) {
+            photoOriginal.disabled = true;
+        }
+
+
+        if (packPreview) {
+            packPreview.disabled = false;
+        }
+
+        if (packZip) {
+            packZip.disabled = false;
+        }
+    }
 }
 
 
@@ -131,15 +231,21 @@ async function preparePhotoProduct(product) {
         originalInput?.files?.[0];
 
 
-    // If adding a NEW product, both are required
+    // =================================================
+    // NEW PHOTO PRODUCT
+    // =================================================
     if (!editId) {
 
         if (!coverFile) {
-            throw new Error("Please upload the Photo Cover.");
+            throw new Error(
+                "Please upload the Preview / Cover Photo."
+            );
         }
 
         if (!originalFile) {
-            throw new Error("Please upload the Photo HD file.");
+            throw new Error(
+                "Please upload the Downloadable HD Photo."
+            );
         }
 
         product.cover =
@@ -155,8 +261,9 @@ async function preparePhotoProduct(product) {
     }
 
 
-    // Editing:
-    // only replace files if a new file was selected
+    // =================================================
+    // EDIT EXISTING PHOTO PRODUCT
+    // =================================================
     if (coverFile) {
 
         product.cover =
@@ -199,13 +306,13 @@ async function preparePackProduct(product) {
 
         if (!previewFiles.length) {
             throw new Error(
-                "Please upload at least one Pack Preview image."
+                "Please upload at least one Pack Preview Photo."
             );
         }
 
         if (!zipFile) {
             throw new Error(
-                "Please upload the Pack ZIP file."
+                "Please upload the Downloadable ZIP File."
             );
         }
 
@@ -219,7 +326,8 @@ async function preparePackProduct(product) {
             previews.push(url);
         }
 
-        product.preview = previews;
+        product.preview =
+            previews;
 
         product.cover =
             previews[0] || "";
@@ -234,8 +342,6 @@ async function preparePackProduct(product) {
     // =================================================
     // EDIT EXISTING PACK
     // =================================================
-
-    // Only replace previews if new previews were selected
     if (previewFiles.length) {
 
         const previews = [];
@@ -248,14 +354,14 @@ async function preparePackProduct(product) {
             previews.push(url);
         }
 
-        product.preview = previews;
+        product.preview =
+            previews;
 
         product.cover =
             previews[0] || product.cover;
     }
 
 
-    // Only replace ZIP if a new ZIP was selected
     if (zipFile) {
 
         product.zip =
@@ -272,14 +378,19 @@ async function addProduct() {
     const saveBtn =
         document.getElementById("saveBtn");
 
+    const currentEditId =
+        editId;
+
     try {
 
-        // Prevent double-click
         if (saveBtn) {
+
             saveBtn.disabled = true;
-            saveBtn.textContent = editId
-                ? "Updating..."
-                : "Saving...";
+
+            saveBtn.textContent =
+                currentEditId
+                    ? "Updating..."
+                    : "Saving...";
         }
 
 
@@ -288,10 +399,16 @@ async function addProduct() {
         // =================================================
 
         const title =
-            document.getElementById("title").value.trim();
+            document
+                .getElementById("title")
+                .value
+                .trim();
 
         const price =
-            document.getElementById("price").value.trim();
+            document
+                .getElementById("price")
+                .value
+                .trim();
 
         const originalPrice =
             document
@@ -300,28 +417,38 @@ async function addProduct() {
                 .trim();
 
         const rawDescription =
-            document.getElementById("description").value;
+            document
+                .getElementById("description")
+                .value;
 
         const typeElement =
             document.querySelector(
                 'input[name="type"]:checked'
             );
 
+
         if (!title) {
-            throw new Error("Please enter a Product Title.");
+            throw new Error(
+                "Please enter a Product Title."
+            );
         }
 
         if (!price) {
-            throw new Error("Please enter the Discount Price.");
+            throw new Error(
+                "Please enter the Discount Price."
+            );
         }
 
         if (!typeElement) {
-            throw new Error("Please select Photo or Pack.");
+            throw new Error(
+                "Please select Photo or Pack."
+            );
         }
 
 
         const type =
             typeElement.value;
+
 
         const priceNumber =
             Number(price);
@@ -334,6 +461,7 @@ async function addProduct() {
             isNaN(priceNumber) ||
             priceNumber <= 0
         ) {
+
             throw new Error(
                 "Please enter a valid Discount Price."
             );
@@ -345,7 +473,9 @@ async function addProduct() {
         // =================================================
 
         const description =
-            formatDescription(rawDescription);
+            formatDescription(
+                rawDescription
+            );
 
 
         // =================================================
@@ -369,8 +499,10 @@ async function addProduct() {
 
             discount =
                 Math.round(
-                    ((originalNumber - priceNumber) /
-                        originalNumber) * 100
+                    (
+                        (originalNumber - priceNumber) /
+                        originalNumber
+                    ) * 100
                 );
         }
 
@@ -382,35 +514,28 @@ async function addProduct() {
         const product = {
 
             id:
-                editId ||
+                currentEditId ||
                 Date.now().toString(),
 
             title:
-
                 title,
 
             price:
-
                 priceNumber,
 
             originalPrice:
-
                 originalNumber,
 
             discount:
-
                 discount,
 
             description:
-
                 description,
 
             category:
-
                 category,
 
             type:
-
                 type
         };
 
@@ -421,11 +546,15 @@ async function addProduct() {
 
         if (type === "photo") {
 
-            await preparePhotoProduct(product);
+            await preparePhotoProduct(
+                product
+            );
 
         } else {
 
-            await preparePackProduct(product);
+            await preparePackProduct(
+                product
+            );
         }
 
 
@@ -437,16 +566,18 @@ async function addProduct() {
 
 
         // =================================================
-        // EDIT EXISTING PRODUCT
+        // UPDATE EXISTING PRODUCT
         // =================================================
 
-        if (editId) {
+        if (currentEditId) {
 
             response =
                 await fetch(
                     API +
                     "/update-product/" +
-                    encodeURIComponent(editId),
+                    encodeURIComponent(
+                        currentEditId
+                    ),
 
                     {
                         method: "PUT",
@@ -457,11 +588,14 @@ async function addProduct() {
                         },
 
                         body:
-                            JSON.stringify(product)
+                            JSON.stringify(
+                                product
+                            )
                     }
                 );
 
         }
+
 
         // =================================================
         // CREATE NEW PRODUCT
@@ -471,7 +605,8 @@ async function addProduct() {
 
             response =
                 await fetch(
-                    API + "/add-product",
+                    API +
+                    "/add-product",
 
                     {
                         method: "POST",
@@ -482,7 +617,9 @@ async function addProduct() {
                         },
 
                         body:
-                            JSON.stringify(product)
+                            JSON.stringify(
+                                product
+                            )
                     }
                 );
         }
@@ -507,7 +644,10 @@ async function addProduct() {
         }
 
 
-        if (!response.ok || !data.success) {
+        if (
+            !response.ok ||
+            !data.success
+        ) {
 
             console.error(
                 "Backend response:",
@@ -527,21 +667,18 @@ async function addProduct() {
         // =================================================
 
         alert(
-            editId
+            currentEditId
                 ? "✅ Product updated successfully!"
                 : "✅ Product added successfully!"
         );
 
 
-        // Reset edit mode
         editId = null;
 
 
-        // Reset form
         resetForm();
 
 
-        // Reload products
         await loadProducts();
 
 
@@ -554,8 +691,10 @@ async function addProduct() {
 
         alert(
             "❌ " +
-            (err.message ||
-                "Something went wrong.")
+            (
+                err.message ||
+                "Something went wrong."
+            )
         );
 
     } finally {
@@ -578,59 +717,90 @@ async function addProduct() {
 // =====================================================
 function resetForm() {
 
-    document.getElementById("title").value = "";
+    document.getElementById(
+        "title"
+    ).value = "";
 
-    document.getElementById("originalPrice").value = "";
+    document.getElementById(
+        "originalPrice"
+    ).value = "";
 
-    document.getElementById("price").value = "";
+    document.getElementById(
+        "price"
+    ).value = "";
 
-    document.getElementById("description").value = "";
+    document.getElementById(
+        "description"
+    ).value = "";
 
 
     const discountBox =
-        document.getElementById("discountPreview");
+        document.getElementById(
+            "discountPreview"
+        );
 
     if (discountBox) {
         discountBox.innerHTML = "";
     }
 
 
-    // Reset categories
+    // =================================================
+    // RESET CATEGORIES
+    // =================================================
+
     document
         .querySelectorAll(
             ".category-box input[type='checkbox']"
         )
         .forEach(input => {
+
             input.checked = false;
         });
 
 
-    // Reset type to photo
+    // =================================================
+    // RESET TYPE TO PHOTO
+    // =================================================
+
     const photoRadio =
         document.querySelector(
             'input[name="type"][value="photo"]'
         );
 
     if (photoRadio) {
+
         photoRadio.checked = true;
     }
 
 
-    // Reset file inputs
+    // =================================================
+    // RESET FILE INPUTS
+    // =================================================
+
     const fileInputs =
         document.querySelectorAll(
             'input[type="file"]'
         );
 
     fileInputs.forEach(input => {
+
         input.value = "";
     });
 
 
+    editId = null;
+
+
+    updateUploadSections();
+
+
     const saveBtn =
-        document.getElementById("saveBtn");
+        document.getElementById(
+            "saveBtn"
+        );
 
     if (saveBtn) {
+
         saveBtn.textContent =
             "Save Product";
     }
@@ -645,9 +815,12 @@ async function loadProducts() {
     try {
 
         const res =
-            await fetch(API + "/products");
+            await fetch(
+                API + "/products"
+            );
 
         if (!res.ok) {
+
             throw new Error(
                 "Could not load products."
             );
@@ -656,7 +829,9 @@ async function loadProducts() {
         const products =
             await res.json();
 
-        renderProducts(products);
+        renderProducts(
+            products
+        );
 
     } catch (err) {
 
@@ -673,9 +848,11 @@ async function loadProducts() {
         if (box) {
 
             box.innerHTML =
-                `<p style="color:red;">
+                `
+                <p style="color:red;">
                     Failed to load products.
-                </p>`;
+                </p>
+                `;
         }
     }
 }
@@ -692,6 +869,7 @@ async function deleteProduct(id) {
         return;
     }
 
+
     try {
 
         const res =
@@ -705,8 +883,10 @@ async function deleteProduct(id) {
                 }
             );
 
+
         const data =
             await res.json();
+
 
         if (!data.success) {
 
@@ -716,9 +896,14 @@ async function deleteProduct(id) {
             );
         }
 
-        alert("🗑️ Product deleted.");
+
+        alert(
+            "🗑️ Product deleted."
+        );
+
 
         await loadProducts();
+
 
     } catch (err) {
 
@@ -740,35 +925,62 @@ async function deleteProduct(id) {
 // =====================================================
 function editProduct(p) {
 
-    document.getElementById("title").value =
+    document.getElementById(
+        "title"
+    ).value =
         p.title || "";
 
-    document.getElementById("price").value =
+
+    document.getElementById(
+        "price"
+    ).value =
         p.price || "";
 
-    document.getElementById("originalPrice").value =
+
+    document.getElementById(
+        "originalPrice"
+    ).value =
         p.originalPrice || "";
 
 
-    // Restore description
-    document.getElementById("description").value =
+    // =================================================
+    // DESCRIPTION
+    // =================================================
+
+    document.getElementById(
+        "description"
+    ).value =
         (p.description || "")
             .replace(/<br><br>/g, "\n")
             .replace(/<br>/g, "\n");
 
 
-    // Restore type
+    // =================================================
+    // TYPE
+    // =================================================
+
     const typeRadio =
         document.querySelector(
             `input[name="type"][value="${p.type}"]`
         );
 
     if (typeRadio) {
+
         typeRadio.checked = true;
     }
 
 
-    // Restore categories
+    // =================================================
+    // UPDATE UPLOAD UI
+    // =================================================
+
+    updateUploadSections();
+
+
+    // =================================================
+    // CATEGORIES
+    // =================================================
+
     document
         .querySelectorAll(
             ".category-box input[type='checkbox']"
@@ -776,28 +988,34 @@ function editProduct(p) {
         .forEach(input => {
 
             input.checked =
-                Array.isArray(p.category) &&
+                Array.isArray(
+                    p.category
+                ) &&
                 p.category.includes(
                     input.value
                 );
         });
 
 
+    // =================================================
     // IMPORTANT:
-    // Use MongoDB _id first, then custom id
+    // USE MONGODB _id FIRST
+    // =================================================
+
     editId =
         p._id ||
         p.id;
 
 
-    document.getElementById("saveBtn").textContent =
+    document.getElementById(
+        "saveBtn"
+    ).textContent =
         "Update Product";
 
 
     updateDiscount();
 
 
-    // Scroll to top
     window.scrollTo({
         top: 0,
         behavior: "smooth"
@@ -815,12 +1033,18 @@ function renderProducts(products) {
             "product-list-admin"
         );
 
-    if (!box) return;
+    if (!box) {
+        return;
+    }
+
 
     box.innerHTML = "";
 
 
-    if (!products || !products.length) {
+    if (
+        !products ||
+        !products.length
+    ) {
 
         box.innerHTML =
             "<p>No products yet.</p>";
@@ -841,9 +1065,12 @@ function renderProducts(products) {
 
             const percent =
                 Math.round(
-                    ((p.originalPrice - p.price) /
-                        p.originalPrice) * 100
+                    (
+                        (p.originalPrice - p.price) /
+                        p.originalPrice
+                    ) * 100
                 );
+
 
             discountHTML =
                 `
@@ -863,68 +1090,72 @@ function renderProducts(products) {
             p.id;
 
 
-        box.innerHTML += `
+        box.innerHTML +=
+            `
 
-        <div class="admin-card">
+            <div class="admin-card">
 
-            <div>
+                <div>
 
-                <b>${escapeHTML(
-                    p.title || "Untitled Product"
-                )}</b>
+                    <b>
+                        ${escapeHTML(
+                            p.title ||
+                            "Untitled Product"
+                        )}
+                    </b>
 
-                <br>
+                    <br>
 
-                ${
-                    p.originalPrice
-                        ? `
-                            <s>
-                                ₹${p.originalPrice}
-                            </s>
-                          `
-                        : ""
-                }
+                    ${
+                        p.originalPrice
+                            ? `
+                                <s>
+                                    ₹${p.originalPrice}
+                                </s>
+                              `
+                            : ""
+                    }
 
-                <strong>
-                    ₹${p.price || 0}
-                </strong>
+                    <strong>
+                        ₹${p.price || 0}
+                    </strong>
 
-                ${discountHTML}
+                    ${discountHTML}
 
-                <br>
+                    <br>
 
-                <small>
-                    ${p.type || "product"}
-                </small>
+                    <small>
+                        ${p.type || "product"}
+                    </small>
+
+                </div>
+
+
+                <div style="
+                    display:flex;
+                    gap:10px;
+                ">
+
+                    <button
+                        class="action-btn edit-btn"
+                        onclick='editProduct(${JSON.stringify(p)})'
+                    >
+                        Edit
+                    </button>
+
+
+                    <button
+                        class="action-btn delete-btn"
+                        onclick='deleteProduct("${productId}")'
+                    >
+                        Delete
+                    </button>
+
+                </div>
 
             </div>
 
-
-            <div style="
-                display:flex;
-                gap:10px;
-            ">
-
-                <button
-                    class="action-btn edit-btn"
-                    onclick='editProduct(${JSON.stringify(p)})'
-                >
-                    Edit
-                </button>
-
-
-                <button
-                    class="action-btn delete-btn"
-                    onclick='deleteProduct("${productId}")'
-                >
-                    Delete
-                </button>
-
-            </div>
-
-        </div>
-
-        `;
+            `;
     });
 }
 
@@ -960,6 +1191,7 @@ document.addEventListener(
                 "saveBtn"
             );
 
+
         if (!saveBtn) {
 
             console.error(
@@ -975,6 +1207,27 @@ document.addEventListener(
             addProduct
         );
 
+
+        // =================================================
+        // TYPE SWITCH
+        // =================================================
+
+        document
+            .querySelectorAll(
+                'input[name="type"]'
+            )
+            .forEach(radio => {
+
+                radio.addEventListener(
+                    "change",
+                    updateUploadSections
+                );
+            });
+
+
+        // =================================================
+        // DISCOUNT
+        // =================================================
 
         const originalPrice =
             document.getElementById(
@@ -1004,6 +1257,17 @@ document.addEventListener(
             );
         }
 
+
+        // =================================================
+        // INITIAL UI
+        // =================================================
+
+        updateUploadSections();
+
+
+        // =================================================
+        // LOAD PRODUCTS
+        // =================================================
 
         loadProducts();
     }
