@@ -22,7 +22,7 @@ async function checkAdminAccess() {
         if (!response.ok) {
 
             window.location.replace(
-                "/admin-login.html"
+                "/admin/admin-login.html"
             );
 
             return false;
@@ -37,7 +37,7 @@ async function checkAdminAccess() {
         ) {
 
             window.location.replace(
-                "/admin-login.html"
+                "/admin/admin-login.html"
             );
 
             return false;
@@ -55,7 +55,7 @@ async function checkAdminAccess() {
         );
 
         window.location.replace(
-            "/admin-login.html"
+            "/admin/admin-login.html"
         );
 
         return false;
@@ -655,7 +655,6 @@ async function addProduct() {
                     {
                         method: "PUT",
 
-                        // 🔐 SEND ADMIN SESSION COOKIE
                         credentials: "include",
 
                         headers: {
@@ -687,7 +686,6 @@ async function addProduct() {
                     {
                         method: "POST",
 
-                        // 🔐 SEND ADMIN SESSION COOKIE
                         credentials: "include",
 
                         headers: {
@@ -754,9 +752,7 @@ async function addProduct() {
 
         editId = null;
 
-
         resetForm();
-
 
         await loadProducts();
 
@@ -824,10 +820,6 @@ function resetForm() {
     }
 
 
-    // =================================================
-    // RESET CATEGORIES
-    // =================================================
-
     document
         .querySelectorAll(
             ".category-box input[type='checkbox']"
@@ -838,24 +830,15 @@ function resetForm() {
         });
 
 
-    // =================================================
-    // RESET TYPE TO PHOTO
-    // =================================================
-
     const photoRadio =
         document.querySelector(
             'input[name="type"][value="photo"]'
         );
 
     if (photoRadio) {
-
         photoRadio.checked = true;
     }
 
-
-    // =================================================
-    // RESET FILE INPUTS
-    // =================================================
 
     const fileInputs =
         document.querySelectorAll(
@@ -863,13 +846,11 @@ function resetForm() {
         );
 
     fileInputs.forEach(input => {
-
         input.value = "";
     });
 
 
     editId = null;
-
 
     updateUploadSections();
 
@@ -880,7 +861,6 @@ function resetForm() {
         );
 
     if (saveBtn) {
-
         saveBtn.textContent =
             "Save Product";
     }
@@ -962,8 +942,6 @@ async function deleteProduct(id) {
 
                 {
                     method: "DELETE",
-
-                    // 🔐 SEND ADMIN SESSION COOKIE
                     credentials: "include"
                 }
             );
@@ -1029,10 +1007,6 @@ function editProduct(p) {
         p.originalPrice || "";
 
 
-    // =================================================
-    // DESCRIPTION
-    // =================================================
-
     document.getElementById(
         "description"
     ).value =
@@ -1041,31 +1015,18 @@ function editProduct(p) {
             .replace(/<br>/g, "\n");
 
 
-    // =================================================
-    // TYPE
-    // =================================================
-
     const typeRadio =
         document.querySelector(
             `input[name="type"][value="${p.type}"]`
         );
 
     if (typeRadio) {
-
         typeRadio.checked = true;
     }
 
 
-    // =================================================
-    // UPDATE UPLOAD UI
-    // =================================================
-
     updateUploadSections();
 
-
-    // =================================================
-    // CATEGORIES
-    // =================================================
 
     document
         .querySelectorAll(
@@ -1082,11 +1043,6 @@ function editProduct(p) {
                 );
         });
 
-
-    // =================================================
-    // IMPORTANT:
-    // USE MONGODB _id FIRST
-    // =================================================
 
     editId =
         p._id ||
