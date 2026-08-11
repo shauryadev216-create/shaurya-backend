@@ -5,261 +5,963 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-app.use(cors({ origin: "*" }));
-app.use(express.json());
 
-// =========================
-// 🔥 MONGODB CONNECT
-// =========================
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err => console.error("❌ Mongo Error:", err));
+// =====================================================
+// MIDDLEWARE
+// =====================================================
 
-// =========================
+app.use(
+    cors({
+        origin: "*"
+    })
+);
+
+app.use(
+    express.json({
+        limit: "20mb"
+    })
+);
+
+
+// =====================================================
+// MONGODB CONNECT
+// =====================================================
+
+mongoose
+    .connect(
+        process.env.MONGO_URI,
+        {
+            serverSelectionTimeoutMS: 10000
+        }
+    )
+    .then(
+        () => {
+            console.log(
+                "✅ MongoDB Connected"
+            );
+        }
+    )
+    .catch(
+        err => {
+
+            console.error(
+                "❌ MongoDB Error:",
+                err
+            );
+        }
+    );
+
+
+// =====================================================
 // PRODUCT SCHEMA
-// =========================
-const productSchema = new mongoose.Schema({
-    id: String,
-    title: String,
-    price: Number,
-    cover: String,
-    preview: Array,
-    description: String,
-    type: String,
-    original: String,
-    zip: String,
-    category: Array
-});
+// =====================================================
 
-const Product = mongoose.model("Product", productSchema);
-
-// =========================
-// 🆕 PURCHASE SCHEMA
-// =========================
-const purchaseSchema = new mongoose.Schema({
-    user_email: String,
-    product_id: String,
-    order_id: String,
-    created_at: {
-        type: Date,
-        default: Date.now
-    }
-});
-
-const Purchase = mongoose.model("Purchase", purchaseSchema);
-
-// =========================
-// ADD PRODUCT
-// =========================
-app.post("/add-product", async (req, res) => {
-    try {
-        const product = new Product(req.body);
-        await product.save();
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false });
-    }
-});
-
-// =========================
-// GET PRODUCTS
-// =========================
-app.get("/products", async (req, res) => {
-    try {
-        const products = await Product.find();
-        res.json(products);
-    } catch {
-        res.json([]);
-    }
-});
-
-// =========================
-// DELETE PRODUCT
-// =========================
-app.delete("/delete-product/:id", async (req, res) => {
-    try {
-        await Product.deleteOne({ id: req.params.id });
-        res.json({ success: true });
-    } catch {
-        res.json({ success: false });
-    }
-});
-
-// =========================
-// CREATE ORDER (🔥 FIXED FINAL)
-// =========================
-app.post("/create-order", async (req, res) => {
-
-    try {
-
-        const { productId, phone, email } = req.body;
-
-        if (!productId) {
-            return res.json({ success: false, message: "Missing productId" });
-        }
-
-        // 🔥 GET PRODUCT FROM DB (SECURE PRICE)
-        const product = await Product.findOne({
-            $or: [
-                { id: productId },
-                { _id: productId }
-            ]
-        });
-
-        if (!product) {
-            return res.json({ success: false, message: "Product not found" });
-        }
-
-        const price = Number(product.price);
-
-        // 🔥 ORDER ID
-        const orderId = "order_" + Date.now();
-
-        // =========================
-        // CASHFREE ORDER
-        // =========================
-        const response = await axios.post(
-            "https://sandbox.cashfree.com/pg/orders",
-            {
-                order_id: orderId,
-                order_amount: price,
-                order_currency: "INR",
-
-                customer_details: {
-                    customer_id: "user_" + Date.now(),
-                    customer_email: email || "test@test.com",
-                    customer_phone: phone || "9999999999"
-                },
-
-                order_meta: {
-                    return_url: `https://precious-horse-789355.netlify.app/product-template.html?id=${product._id}&order_id=${orderId}`
-                }
+const productSchema =
+    new mongoose.Schema(
+        {
+            id: {
+                type: String
             },
-            {
-                headers: {
-                    "x-client-id": process.env.APP_ID,
-                    "x-client-secret": process.env.SECRET_KEY,
-                    "x-api-version": "2022-09-01",
-                    "Content-Type": "application/json"
-                }
+
+            title: {
+                type: String
+            },
+
+            price: {
+                type: Number
+            },
+
+            originalPrice: {
+                type: Number,
+                default: 0
+            },
+
+            discount: {
+                type: Number,
+                default: 0
+            },
+
+            cover: {
+                type: String
+            },
+
+            preview: {
+                type: Array,
+                default: []
+            },
+
+            description: {
+                type: String
+            },
+
+            type: {
+                type: String
+            },
+
+            original: {
+                type: String
+            },
+
+            zip: {
+                type: String
+            },
+
+            category: {
+                type: Array,
+                default: []
             }
-        );
+        },
+        {
+            timestamps: true
+        }
+    );
 
-        // 🔥 SAVE PURCHASE (ONLY CREATED, NOT PAID YET)
-        await Purchase.create({
-            user_email: email,
-            product_id: product._id,
-            order_id: orderId
-        });
 
-        console.log("✅ ORDER CREATED:", orderId);
+const Product =
+    mongoose.model(
+        "Product",
+        productSchema
+    );
 
-        // 🔥 IMPORTANT CHANGE
+
+// =====================================================
+// PURCHASE SCHEMA
+// =====================================================
+
+const purchaseSchema =
+    new mongoose.Schema(
+        {
+            user_email: {
+                type: String
+            },
+
+            product_id: {
+                type: String
+            },
+
+            order_id: {
+                type: String
+            },
+
+            created_at: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    );
+
+
+const Purchase =
+    mongoose.model(
+        "Purchase",
+        purchaseSchema
+    );
+
+
+// =====================================================
+// HEALTH CHECK
+// =====================================================
+
+app.get(
+    "/",
+    (req, res) => {
+
         res.json({
             success: true,
-            payment_link: response.data.payment_link
-        });
-
-    } catch (err) {
-        console.error("❌ ORDER ERROR:", err.response?.data || err.message);
-
-        res.json({
-            success: false
+            message:
+                "MINDLENS backend is running 🚀"
         });
     }
-});
+);
 
-// =========================
-// VERIFY PAYMENT
-// =========================
-app.post("/verify-payment", async (req, res) => {
 
-    try {
+// =====================================================
+// ADD PRODUCT
+// =====================================================
 
-        const { order_id } = req.body;
+app.post(
+    "/add-product",
+    async (req, res) => {
 
-        const response = await axios.get(
-            `https://sandbox.cashfree.com/pg/orders/${order_id}`,
-            {
-                headers: {
-                    "x-client-id": process.env.APP_ID,
-                    "x-client-secret": process.env.SECRET_KEY,
-                    "x-api-version": "2022-09-01"
-                }
-            }
-        );
+        try {
 
-        const isPaid = response.data.order_status === "PAID";
+            const product =
+                new Product(
+                    req.body
+                );
 
-        res.json({ success: isPaid });
 
-    } catch (err) {
-        console.error("❌ VERIFY ERROR:", err.response?.data || err.message);
-        res.json({ success: false });
-    }
-});
-// =========================
-// GET USER PURCHASES (🔥 FIXED)
-// =========================
-app.get("/my-purchases/:email", async (req, res) => {
+            await product.save();
 
-    try {
 
-        const purchases = await Purchase.find({
-            user_email: req.params.email
-        });
+            console.log(
+                "✅ PRODUCT ADDED:",
+                product._id
+            );
 
-        const result = [];
 
-        for (let p of purchases) {
-
-            const product = await Product.findOne({
-                $or: [
-                    { _id: p.product_id },
-                    { id: p.product_id }
-                ]
+            res.json({
+                success: true,
+                product: product
             });
 
-            if (product) {
-                result.push({
-                    ...p._doc,
-                    product
-                });
-            }
         }
 
-        res.json(result);
+        catch (err) {
 
-    } catch (err) {
-        console.error(err);
-        res.json([]);
+            console.error(
+                "❌ ADD PRODUCT ERROR:",
+                err
+            );
+
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    err.message
+            });
+        }
     }
-});
+);
 
-// =========================
-// START SERVER
-// =========================
-const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log("🚀 Server running on port " + PORT);
-});
+// =====================================================
+// GET PRODUCTS
+// =====================================================
 
-// =========================
+app.get(
+    "/products",
+    async (req, res) => {
+
+        try {
+
+            const products =
+                await Product
+                    .find()
+                    .sort({
+                        createdAt: -1
+                    });
+
+
+            res.json(
+                products
+            );
+
+        }
+
+        catch (err) {
+
+            console.error(
+                "❌ GET PRODUCTS ERROR:",
+                err
+            );
+
+
+            res.status(500).json(
+                []
+            );
+        }
+    }
+);
+
+
+// =====================================================
+// DELETE PRODUCT
+// =====================================================
+
+app.delete(
+    "/delete-product/:id",
+    async (req, res) => {
+
+        try {
+
+            const id =
+                req.params.id;
+
+
+            console.log(
+                "🗑️ DELETE REQUEST:",
+                id
+            );
+
+
+            let deleted;
+
+
+            // =================================================
+            // TRY MONGODB _id
+            // =================================================
+
+            if (
+                mongoose.Types.ObjectId.isValid(
+                    id
+                )
+            ) {
+
+                deleted =
+                    await Product.findByIdAndDelete(
+                        id
+                    );
+            }
+
+
+            // =================================================
+            // IF NOT FOUND, TRY CUSTOM id
+            // =================================================
+
+            if (!deleted) {
+
+                deleted =
+                    await Product.findOneAndDelete(
+                        {
+                            id: id
+                        }
+                    );
+            }
+
+
+            // =================================================
+            // NOT FOUND
+            // =================================================
+
+            if (!deleted) {
+
+                console.log(
+                    "❌ PRODUCT NOT FOUND:",
+                    id
+                );
+
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    error:
+                        "Product not found."
+                });
+            }
+
+
+            console.log(
+                "✅ PRODUCT DELETED:",
+                deleted._id
+            );
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "Product deleted successfully."
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(
+                "❌ DELETE ERROR:",
+                err
+            );
+
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    err.message
+            });
+        }
+    }
+);
+
+
+// =====================================================
 // UPDATE PRODUCT
-// =========================
-app.put("/update-product/:id", async (req, res) => {
-    try {
-        await Product.updateOne(
-            { id: req.params.id },
-            req.body
-        );
+// =====================================================
 
-        res.json({ success: true });
+app.put(
+    "/update-product/:id",
+    async (req, res) => {
 
-    } catch (err) {
-        console.error(err);
-        res.json({ success: false });
+        try {
+
+            const id =
+                req.params.id;
+
+
+            console.log(
+                "✏️ UPDATE REQUEST:",
+                id
+            );
+
+
+            let updated = null;
+
+
+            // =================================================
+            // TRY MONGODB _id
+            // =================================================
+
+            if (
+                mongoose.Types.ObjectId.isValid(
+                    id
+                )
+            ) {
+
+                updated =
+                    await Product.findByIdAndUpdate(
+                        id,
+                        req.body,
+                        {
+                            new: true,
+                            runValidators: true
+                        }
+                    );
+            }
+
+
+            // =================================================
+            // TRY CUSTOM id
+            // =================================================
+
+            if (!updated) {
+
+                updated =
+                    await Product.findOneAndUpdate(
+                        {
+                            id: id
+                        },
+
+                        req.body,
+
+                        {
+                            new: true,
+                            runValidators: true
+                        }
+                    );
+            }
+
+
+            // =================================================
+            // NOT FOUND
+            // =================================================
+
+            if (!updated) {
+
+                console.log(
+                    "❌ PRODUCT NOT FOUND:",
+                    id
+                );
+
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    error:
+                        "Product not found."
+                });
+            }
+
+
+            console.log(
+                "✅ PRODUCT UPDATED:",
+                updated._id
+            );
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "Product updated successfully.",
+
+                product:
+                    updated
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(
+                "❌ UPDATE PRODUCT ERROR:",
+                err
+            );
+
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    err.message
+            });
+        }
     }
-});
+);
+
+
+// =====================================================
+// CREATE CASHFREE ORDER
+// =====================================================
+
+app.post(
+    "/create-order",
+    async (req, res) => {
+
+        try {
+
+            // =================================================
+            // ACCEPT BOTH NAMES
+            // =================================================
+
+            const productId =
+                req.body.productId ||
+                req.body.id;
+
+
+            const amount =
+                Number(
+                    req.body.amount
+                );
+
+
+            const phone =
+                req.body.phone;
+
+
+            const email =
+                req.body.email;
+
+
+            // =================================================
+            // VALIDATION
+            // =================================================
+
+            if (!productId) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Missing productId"
+                });
+            }
+
+
+            if (
+                !amount ||
+                amount <= 0
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid amount"
+                });
+            }
+
+
+            if (!phone) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Missing phone"
+                });
+            }
+
+
+            if (!email) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Missing email"
+                });
+            }
+
+
+            // =================================================
+            // VERIFY PRODUCT EXISTS
+            // =================================================
+
+            let product = null;
+
+
+            if (
+                mongoose.Types.ObjectId.isValid(
+                    productId
+                )
+            ) {
+
+                product =
+                    await Product.findById(
+                        productId
+                    );
+            }
+
+
+            if (!product) {
+
+                product =
+                    await Product.findOne({
+                        id: productId
+                    });
+            }
+
+
+            if (!product) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "Product not found"
+                });
+            }
+
+
+            // =================================================
+            // ALWAYS USE DATABASE PRICE
+            // =================================================
+
+            const finalAmount =
+                Number(
+                    product.price
+                );
+
+
+            if (
+                !finalAmount ||
+                finalAmount <= 0
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Product has an invalid price"
+                });
+            }
+
+
+            // =================================================
+            // CREATE ORDER ID
+            // =================================================
+
+            const orderId =
+                "order_" +
+                Date.now();
+
+
+            // =================================================
+            // CASHFREE REQUEST
+            // =================================================
+
+            const response =
+                await axios.post(
+
+                    "https://sandbox.cashfree.com/pg/orders",
+
+                    {
+
+                        order_amount:
+                            finalAmount,
+
+                        order_currency:
+                            "INR",
+
+                        order_id:
+                            orderId,
+
+
+                        customer_details: {
+
+                            customer_id:
+                                "user_" +
+                                Date.now(),
+
+                            customer_email:
+                                email,
+
+                            customer_phone:
+                                phone
+                        },
+
+
+                        order_meta: {
+
+                            return_url:
+                                `https://precious-horse-789355.netlify.app/product-template.html?id=${encodeURIComponent(
+                                    product._id
+                                )}&order_id=${encodeURIComponent(
+                                    orderId
+                                )}`
+                        },
+
+
+                        order_note:
+                            product.title || "Digital Product"
+
+                    },
+
+
+                    {
+
+                        headers: {
+
+                            "x-client-id":
+                                process.env.APP_ID,
+
+                            "x-client-secret":
+                                process.env.SECRET_KEY,
+
+                            "x-api-version":
+                                "2022-09-01",
+
+                            "Content-Type":
+                                "application/json"
+                        }
+                    }
+                );
+
+
+            console.log(
+                "✅ CASHFREE ORDER CREATED:",
+                response.data
+            );
+
+
+            // =================================================
+            // SAVE PURCHASE
+            // =================================================
+
+            await Purchase.create({
+
+                user_email:
+                    email,
+
+                product_id:
+                    String(
+                        product._id
+                    ),
+
+                order_id:
+                    orderId
+            });
+
+
+            // =================================================
+            // RESPONSE
+            // =================================================
+
+            res.json({
+
+                success: true,
+
+                payment_session_id:
+                    response.data
+                        .payment_session_id,
+
+                order_id:
+                    orderId
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(
+                "❌ CASHFREE ORDER ERROR:"
+            );
+
+
+            console.error(
+                err.response?.data ||
+                err.message
+            );
+
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    err.response?.data
+                        ?.message ||
+                    err.response?.data
+                        ?.error_description ||
+                    err.message,
+
+                error:
+                    err.response?.data ||
+                    err.message
+            });
+        }
+    }
+);
+
+
+// =====================================================
+// VERIFY PAYMENT
+// =====================================================
+
+app.post(
+    "/verify-payment",
+    async (req, res) => {
+
+        const {
+            order_id
+        } = req.body;
+
+
+        if (!order_id) {
+
+            return res.json({
+
+                success: false,
+
+                message:
+                    "Missing order_id"
+            });
+        }
+
+
+        try {
+
+            const response =
+                await axios.get(
+
+                    `https://sandbox.cashfree.com/pg/orders/${encodeURIComponent(
+                        order_id
+                    )}`,
+
+                    {
+
+                        headers: {
+
+                            "x-client-id":
+                                process.env.APP_ID,
+
+                            "x-client-secret":
+                                process.env.SECRET_KEY,
+
+                            "x-api-version":
+                                "2022-09-01"
+                        }
+                    }
+                );
+
+
+            console.log(
+                "💳 PAYMENT STATUS:",
+                response.data
+                    .order_status
+            );
+
+
+            res.json({
+
+                success:
+                    response.data
+                        .order_status ===
+                    "PAID"
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(
+                "❌ VERIFY ERROR:",
+                err.response?.data ||
+                err.message
+            );
+
+
+            res.json({
+
+                success: false
+            });
+        }
+    }
+);
+
+
+// =====================================================
+// USER PURCHASES
+// =====================================================
+
+app.get(
+    "/my-purchases/:email",
+    async (req, res) => {
+
+        try {
+
+            const purchases =
+                await Purchase.find({
+
+                    user_email:
+                        req.params.email
+                });
+
+
+            res.json(
+                purchases
+            );
+
+        }
+
+        catch (err) {
+
+            console.error(
+                "❌ PURCHASES ERROR:",
+                err
+            );
+
+
+            res.json(
+                []
+            );
+        }
+    }
+);
+
+
+// =====================================================
+// SERVER
+// =====================================================
+
+const PORT =
+    process.env.PORT ||
+    3000;
+
+
+app.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
+
+        console.log(
+            "🚀 Server running on port " +
+            PORT
+        );
+    }
+);

@@ -1,128 +1,577 @@
-const API = "https://shaurya-backend.onrender.com";
+const API =
+    "https://shaurya-backend.onrender.com";
 
-const params = new URLSearchParams(window.location.search);
 
-const id = params.get("id");
-const phone = params.get("phone");
-const email = params.get("email");
+// =====================================================
+// URL PARAMETERS
+// =====================================================
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+// Support both names
+const productId =
+    params.get("productId") ||
+    params.get("id");
+
+const phone =
+    params.get("phone") || "";
+
+const email =
+    params.get("email") || "";
+
 
 let productData = null;
 
-// ==========================
+
+// =====================================================
 // LOAD PRODUCT
-// ==========================
-async function loadProduct(){
+// =====================================================
 
-    try{
+async function loadProduct() {
 
-        const res = await fetch(API + "/products");
-        const products = await res.json();
+    try {
 
-        const product = products.find(p => String(p._id) === String(id));
+        if (!productId) {
 
-        if(!product){
-            document.body.innerHTML = "Product not found";
-            return;
-        }
+            document.body.innerHTML = `
+                <div style="
+                    padding:50px;
+                    text-align:center;
+                    font-family:Arial;
+                ">
 
-        productData = product;
+                    <h1>Product ID Missing</h1>
 
-        document.getElementById("title").textContent = product.title;
-        document.getElementById("productImage").src = product.cover;
+                    <p>
+                        Please return to the product page
+                        and try again.
+                    </p>
 
-        // PRICE DISPLAY
-        const price = Number(product.price);
-        const original = Number(product.originalPrice || 0);
-
-        if(original && original > price){
-            const discount = Math.round(((original - price)/original)*100);
-
-            document.getElementById("price").innerHTML = `
-                <span style="text-decoration:line-through;color:#888;">₹${original}</span>
-                <span style="color:red;margin-left:8px;">-${discount}%</span>
-                <br>
-                <b style="font-size:22px;">₹${price}</b>
+                </div>
             `;
-        }else{
-            document.getElementById("price").innerHTML =
-                `<b style="font-size:22px;">₹${price}</b>`;
+
+            return;
         }
 
-        document.getElementById("phone").value = phone || "";
-        document.getElementById("email").value = email || "";
 
-    }catch(err){
-        console.error("LOAD ERROR:", err);
-        alert("Failed to load product ❌");
+        const res =
+            await fetch(
+                API + "/products"
+            );
+
+
+        if (!res.ok) {
+
+            throw new Error(
+                "Failed to load products"
+            );
+        }
+
+
+        const products =
+            await res.json();
+
+
+        // =================================================
+        // FIND PRODUCT
+        // =================================================
+
+        const product =
+            products.find(
+                p =>
+                    String(p._id) ===
+                    String(productId)
+            );
+
+
+        if (!product) {
+
+            document.body.innerHTML = `
+                <div style="
+                    padding:50px;
+                    text-align:center;
+                    font-family:Arial;
+                ">
+
+                    <h1>Product Not Found</h1>
+
+                    <p>
+                        This product may have been removed.
+                    </p>
+
+                </div>
+            `;
+
+            return;
+        }
+
+
+        productData =
+            product;
+
+
+        // =================================================
+        // TITLE
+        // =================================================
+
+        const title =
+            document.getElementById(
+                "title"
+            );
+
+        if (title) {
+
+            title.textContent =
+                product.title || "";
+        }
+
+
+        // =================================================
+        // IMAGE
+        // =================================================
+
+        const image =
+            document.getElementById(
+                "productImage"
+            );
+
+        if (image) {
+
+            image.src =
+                product.cover || "";
+
+            image.alt =
+                product.title || "Product";
+        }
+
+
+        // =================================================
+        // PRICE
+        // =================================================
+
+        const price =
+            Number(product.price || 0);
+
+        const original =
+            Number(
+                product.originalPrice || 0
+            );
+
+
+        const priceBox =
+            document.getElementById(
+                "price"
+            );
+
+
+        if (
+            priceBox &&
+            original &&
+            original > price
+        ) {
+
+            const discount =
+                Math.round(
+                    (
+                        (original - price) /
+                        original
+                    ) * 100
+                );
+
+
+            priceBox.innerHTML = `
+
+                <span style="
+                    text-decoration:line-through;
+                    color:#888;
+                ">
+
+                    ₹${original}
+
+                </span>
+
+
+                <span style="
+                    color:red;
+                    margin-left:8px;
+                ">
+
+                    -${discount}%
+
+                </span>
+
+
+                <br>
+
+
+                <b style="
+                    font-size:22px;
+                ">
+
+                    ₹${price}
+
+                </b>
+
+            `;
+
+        }
+
+        else if (priceBox) {
+
+            priceBox.innerHTML = `
+
+                <b style="
+                    font-size:22px;
+                ">
+
+                    ₹${price}
+
+                </b>
+
+            `;
+        }
+
+
+        // =================================================
+        // QUANTITY
+        // =================================================
+
+        const quantity =
+            document.getElementById(
+                "quantity"
+            );
+
+        if (quantity) {
+
+            quantity.textContent =
+                "1";
+        }
+
+
+        // =================================================
+        // TOTAL
+        // =================================================
+
+        const total =
+            document.getElementById(
+                "total"
+            );
+
+
+        if (total) {
+
+            total.textContent =
+                `₹${price}`;
+        }
+
+
+        // =================================================
+        // PHONE
+        // =================================================
+
+        const phoneInput =
+            document.getElementById(
+                "phone"
+            );
+
+        if (phoneInput) {
+
+            phoneInput.value =
+                phone;
+        }
+
+
+        // =================================================
+        // EMAIL
+        // =================================================
+
+        const emailInput =
+            document.getElementById(
+                "email"
+            );
+
+        if (emailInput) {
+
+            emailInput.value =
+                email;
+        }
+
+
+        console.log(
+            "CHECKOUT PRODUCT:",
+            product
+        );
+
+        console.log(
+            "CHECKOUT PRODUCT ID:",
+            product._id
+        );
+
+    }
+
+    catch (err) {
+
+        console.error(
+            "LOAD ERROR:",
+            err
+        );
+
+
+        alert(
+            "Failed to load product ❌"
+        );
     }
 }
 
-// ==========================
-// PAY NOW (🔥 FINAL FIX)
-// ==========================
-async function payNow(){
 
-    try{
+// =====================================================
+// PAY NOW
+// =====================================================
 
-        if(!productData){
-            alert("Product not loaded ❌");
+async function payNow() {
+
+    const btn =
+        document.querySelector(
+            ".pay-btn"
+        );
+
+
+    try {
+
+        if (!productData) {
+
+            alert(
+                "Product not loaded ❌"
+            );
+
             return;
         }
 
-        const phoneVal = document.getElementById("phone").value;
-        const emailVal = document.getElementById("email").value;
 
-        if(!phoneVal || !emailVal){
-            alert("Enter phone & email");
+        // =================================================
+        // CUSTOMER DETAILS
+        // =================================================
+
+        const phoneInput =
+            document.getElementById(
+                "phone"
+            );
+
+
+        const emailInput =
+            document.getElementById(
+                "email"
+            );
+
+
+        const phoneVal =
+            phoneInput
+                ? phoneInput.value.trim()
+                : "";
+
+
+        const emailVal =
+            emailInput
+                ? emailInput.value.trim()
+                : "";
+
+
+        if (!phoneVal || !emailVal) {
+
+            alert(
+                "Enter phone & email"
+            );
+
             return;
         }
 
-        const btn = document.querySelector(".pay-btn");
-        btn.innerText = "Processing...";
-        btn.disabled = true;
 
-        // ==========================
-        // CALL BACKEND
-        // ==========================
-        const res = await fetch(API + "/create-order", {
-            method:"POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({
-                amount: productData.price,
-                id: productData._id,
-                phone: phoneVal,
-                email: emailVal
-            })
-        });
+        // =================================================
+        // BUTTON
+        // =================================================
 
-        const data = await res.json();
+        if (btn) {
 
-        console.log("BACKEND RESPONSE:", data);
+            btn.innerText =
+                "Processing...";
 
-        if(!data.payment_session_id){
-            alert("Payment init failed ❌\nCheck console");
-            btn.innerText = "Proceed to Payment";
-            btn.disabled = false;
+            btn.disabled =
+                true;
+        }
+
+
+        // =================================================
+        // PRODUCT ID
+        // =================================================
+
+        const realProductId =
+            productData._id ||
+            productData.id;
+
+
+        if (!realProductId) {
+
+            throw new Error(
+                "Product ID is missing."
+            );
+        }
+
+
+        // =================================================
+        // CREATE CASHFREE ORDER
+        // =================================================
+
+        const orderPayload = {
+
+            productId:
+                String(realProductId),
+
+            // Keep id too for compatibility
+            id:
+                String(realProductId),
+
+            amount:
+                Number(productData.price),
+
+            phone:
+                phoneVal,
+
+            email:
+                emailVal
+        };
+
+
+        console.log(
+            "CREATE ORDER PAYLOAD:",
+            orderPayload
+        );
+
+
+        const res =
+            await fetch(
+                API + "/create-order",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            orderPayload
+                        )
+                }
+            );
+
+
+        const data =
+            await res.json();
+
+
+        console.log(
+            "BACKEND RESPONSE:",
+            data
+        );
+
+
+        // =================================================
+        // BACKEND ERROR
+        // =================================================
+
+        if (
+            !res.ok ||
+            !data.payment_session_id
+        ) {
+
+            console.error(
+                "CREATE ORDER FAILED:",
+                data
+            );
+
+
+            alert(
+                data.message ||
+                data.error?.message ||
+                "Payment init failed ❌\nCheck console."
+            );
+
+
+            if (btn) {
+
+                btn.innerText =
+                    "Proceed to Payment";
+
+                btn.disabled =
+                    false;
+            }
+
+
             return;
         }
 
-        // ==========================
-        // CASHFREE SDK
-        // ==========================
-        const cashfree = Cashfree({
-            mode: "sandbox" // change to "production" later
+
+        // =================================================
+        // CASHFREE
+        // =================================================
+
+        const cashfree =
+            Cashfree({
+                mode: "sandbox"
+            });
+
+
+        await cashfree.checkout({
+
+            paymentSessionId:
+                data.payment_session_id,
+
+            redirectTarget:
+                "_self"
         });
 
-        cashfree.checkout({
-            paymentSessionId: data.payment_session_id,
-            redirectTarget: "_self"
-        });
+    }
 
-    }catch(err){
-        console.error("PAY ERROR:", err);
-        alert("Something went wrong ❌");
+    catch (err) {
+
+        console.error(
+            "PAY ERROR:",
+            err
+        );
+
+
+        alert(
+            err.message ||
+            "Something went wrong ❌"
+        );
+
+
+        if (btn) {
+
+            btn.innerText =
+                "Proceed to Payment";
+
+            btn.disabled =
+                false;
+        }
     }
 }
 
-// ==========================
-loadProduct();
+
+// =====================================================
+// START
+// =====================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        loadProduct();
+
+    }
+);
