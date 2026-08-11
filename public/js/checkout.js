@@ -522,7 +522,7 @@ async function payNow() {
 
         const cashfree =
             Cashfree({
-                mode: "sandbox"
+                mode: "production"
             });
 
 

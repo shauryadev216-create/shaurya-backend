@@ -678,7 +678,7 @@ app.post(
             const response =
                 await axios.post(
 
-                    "https://sandbox.cashfree.com/pg/orders",
+                    "https://api.cashfree.com/pg/orders",
 
                     {
 
@@ -849,7 +849,7 @@ app.post(
             const response =
                 await axios.get(
 
-                    `https://sandbox.cashfree.com/pg/orders/${encodeURIComponent(
+                    `https://api.cashfree.com/pg/orders/${encodeURIComponent(
                         order_id
                     )}`,
 
