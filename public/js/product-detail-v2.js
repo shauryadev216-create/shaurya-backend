@@ -2,19 +2,26 @@ const API =
     "https://shaurya-backend.onrender.com";
 
 
+// =====================================================
+// URL PARAMETERS
+// =====================================================
+
 const params =
     new URLSearchParams(
         window.location.search
     );
 
-
 const id =
-    params.get("id");
-
+    params.get("id") ||
+    params.get("productId");
 
 const orderId =
     params.get("order_id");
 
+
+// =====================================================
+// PRODUCT DATA
+// =====================================================
 
 let productData = null;
 
@@ -23,10 +30,9 @@ let productData = null;
 // SAFE DESCRIPTION
 // =====================================================
 
-function renderDescription(text){
+function renderDescription(text) {
 
-    if(!text){
-
+    if (!text) {
         return "";
     }
 
@@ -43,9 +49,26 @@ function renderDescription(text){
 // LOAD PRODUCT
 // =====================================================
 
-async function loadProduct(){
+async function loadProduct() {
 
-    try{
+    try {
+
+        if (!id) {
+
+            document.body.innerHTML = `
+                <div style="
+                    padding:50px;
+                    text-align:center;
+                    font-family:Arial;
+                ">
+                    <h1>Product ID Missing</h1>
+                    <p>Please open the product from the shop.</p>
+                </div>
+            `;
+
+            return;
+        }
+
 
         const res =
             await fetch(
@@ -53,7 +76,7 @@ async function loadProduct(){
             );
 
 
-        if(!res.ok){
+        if (!res.ok) {
 
             throw new Error(
                 "Failed to load products"
@@ -73,10 +96,18 @@ async function loadProduct(){
             );
 
 
-        if(!product){
+        if (!product) {
 
-            document.body.innerHTML =
-                "<h1>Product Not Found</h1>";
+            document.body.innerHTML = `
+                <div style="
+                    padding:50px;
+                    text-align:center;
+                    font-family:Arial;
+                ">
+                    <h1>Product Not Found</h1>
+                    <p>This product may have been removed.</p>
+                </div>
+            `;
 
             return;
         }
@@ -90,22 +121,34 @@ async function loadProduct(){
         // TITLE
         // =================================================
 
-        document.getElementById(
-            "title"
-        ).textContent =
-            product.title;
+        const title =
+            document.getElementById(
+                "title"
+            );
+
+        if (title) {
+
+            title.textContent =
+                product.title || "";
+        }
 
 
         // =================================================
         // DESCRIPTION
         // =================================================
 
-        document.getElementById(
-            "description"
-        ).innerHTML =
-            renderDescription(
-                product.description
+        const description =
+            document.getElementById(
+                "description"
             );
+
+        if (description) {
+
+            description.innerHTML =
+                renderDescription(
+                    product.description
+                );
+        }
 
 
         // =================================================
@@ -128,10 +171,11 @@ async function loadProduct(){
             );
 
 
-        if(
+        if (
+            priceBox &&
             original &&
             original > price
-        ){
+        ) {
 
             const discount =
                 Math.round(
@@ -148,6 +192,7 @@ async function loadProduct(){
                     display:flex;
                     gap:10px;
                     align-items:center;
+                    margin-bottom:4px;
                 ">
 
                     <span style="
@@ -161,8 +206,7 @@ async function loadProduct(){
 
 
                     <span style="
-                        text-decoration:
-                            line-through;
+                        text-decoration:line-through;
                         color:#888;
                     ">
 
@@ -186,16 +230,19 @@ async function loadProduct(){
 
         }
 
-        else{
+        else if (priceBox) {
 
-            priceBox.innerHTML =
-                `
+            priceBox.innerHTML = `
+
                 <b style="
                     font-size:28px;
                 ">
+
                     ₹${price}
+
                 </b>
-                `;
+
+            `;
         }
 
 
@@ -209,16 +256,21 @@ async function loadProduct(){
             );
 
 
-        mainImage.src =
-            product.cover;
+        if (mainImage) {
+
+            mainImage.src =
+                product.cover || "";
 
 
-        // IMPORTANT:
-        // Initial image stays in 16:9 preview mode
+            mainImage.alt =
+                product.title || "Product";
 
-        mainImage.classList.remove(
-            "natural-view"
-        );
+
+            // Initial image = 16:9 preview
+            mainImage.classList.remove(
+                "natural-view"
+            );
+        }
 
 
         // =================================================
@@ -231,11 +283,11 @@ async function loadProduct(){
             );
 
 
-        if(
+        if (
             previewRow &&
-            product.preview &&
+            Array.isArray(product.preview) &&
             product.preview.length
-        ){
+        ) {
 
             previewRow.innerHTML =
                 "";
@@ -259,8 +311,7 @@ async function loadProduct(){
                         (index + 1);
 
 
-                    // First thumbnail active
-                    if(index === 0){
+                    if (index === 0) {
 
                         el.classList.add(
                             "active-preview"
@@ -287,18 +338,17 @@ async function loadProduct(){
 
 
         // =================================================
-        // PAYMENT VERIFICATION
+        // PAYMENT RETURN
         // =================================================
 
-        if(orderId){
+        if (orderId) {
 
-            verifyPaymentAndDownload();
+            await verifyPaymentAndDownload();
         }
-
 
     }
 
-    catch(error){
+    catch (error) {
 
         console.error(
             "LOAD PRODUCT ERROR:",
@@ -336,7 +386,7 @@ async function loadProduct(){
 function changeImage(
     src,
     clickedThumbnail
-){
+) {
 
     const mainImage =
         document.getElementById(
@@ -344,33 +394,23 @@ function changeImage(
         );
 
 
-    if(!mainImage){
-
+    if (!mainImage) {
         return;
     }
 
 
-    // =================================================
-    // CHANGE IMAGE
-    // =================================================
-
+    // Change image
     mainImage.src =
         src;
 
 
-    // =================================================
-    // SHOW ORIGINAL ASPECT RATIO
-    // =================================================
-
+    // Show natural aspect ratio
     mainImage.classList.add(
         "natural-view"
     );
 
 
-    // =================================================
-    // ACTIVE THUMBNAIL
-    // =================================================
-
+    // Remove active state
     document
         .querySelectorAll(
             "#previewRow img"
@@ -385,7 +425,8 @@ function changeImage(
         );
 
 
-    if(clickedThumbnail){
+    // Activate clicked thumbnail
+    if (clickedThumbnail) {
 
         clickedThumbnail.classList.add(
             "active-preview"
@@ -398,17 +439,22 @@ function changeImage(
 // VERIFY PAYMENT
 // =====================================================
 
-async function verifyPaymentAndDownload(){
+async function verifyPaymentAndDownload() {
 
-    try{
+    try {
+
+        if (!orderId) {
+            return;
+        }
+
 
         const res =
             await fetch(
                 API + "/verify-payment",
                 {
-                    method:"POST",
+                    method: "POST",
 
-                    headers:{
+                    headers: {
                         "Content-Type":
                             "application/json"
                     },
@@ -426,7 +472,13 @@ async function verifyPaymentAndDownload(){
             await res.json();
 
 
-        if(!data.success){
+        console.log(
+            "PAYMENT VERIFY RESPONSE:",
+            data
+        );
+
+
+        if (!data.success) {
 
             alert(
                 "Payment failed ❌"
@@ -440,12 +492,13 @@ async function verifyPaymentAndDownload(){
 
     }
 
-    catch(error){
+    catch (error) {
 
         console.error(
             "PAYMENT VERIFY ERROR:",
             error
         );
+
 
         alert(
             "Could not verify payment."
@@ -458,7 +511,7 @@ async function verifyPaymentAndDownload(){
 // SHOW DOWNLOAD BUTTON
 // =====================================================
 
-function showDownloadUI(){
+function showDownloadUI() {
 
     const btn =
         document.getElementById(
@@ -466,8 +519,7 @@ function showDownloadUI(){
         );
 
 
-    if(!btn){
-
+    if (!btn) {
         return;
     }
 
@@ -485,9 +537,9 @@ function showDownloadUI(){
 // START DOWNLOAD
 // =====================================================
 
-function startDownload(){
+function startDownload() {
 
-    if(!productData){
+    if (!productData) {
 
         alert(
             "Product data is not available."
@@ -503,7 +555,7 @@ function startDownload(){
             : productData.zip;
 
 
-    if(!fileUrl){
+    if (!fileUrl) {
 
         alert(
             "Download file is unavailable."
@@ -518,7 +570,7 @@ function startDownload(){
         .then(
             res => {
 
-                if(!res.ok){
+                if (!res.ok) {
 
                     throw new Error(
                         "Download failed"
@@ -549,7 +601,8 @@ function startDownload(){
 
 
                 a.download =
-                    productData.title;
+                    productData.title ||
+                    "download";
 
 
                 document.body.appendChild(
@@ -584,6 +637,7 @@ function startDownload(){
                     error
                 );
 
+
                 alert(
                     "Download failed ❌"
                 );
@@ -606,24 +660,36 @@ document.addEventListener(
             );
 
 
-        if(buyBtn){
+        if (buyBtn) {
 
             buyBtn.onclick =
                 () => {
 
-                    const phone =
+                    const phoneInput =
                         document.getElementById(
                             "userPhone"
-                        ).value.trim();
+                        );
+
+
+                    const emailInput =
+                        document.getElementById(
+                            "userEmail"
+                        );
+
+
+                    const phone =
+                        phoneInput
+                            ? phoneInput.value.trim()
+                            : "";
 
 
                     const email =
-                        document.getElementById(
-                            "userEmail"
-                        ).value.trim();
+                        emailInput
+                            ? emailInput.value.trim()
+                            : "";
 
 
-                    if(!phone || !email){
+                    if (!phone || !email) {
 
                         alert(
                             "Enter phone number and email."
@@ -633,14 +699,32 @@ document.addEventListener(
                     }
 
 
-                    window.location.href =
+                    // =================================================
+                    // IMPORTANT
+                    // Send BOTH id and productId.
+                    // This prevents the "Missing productId" error.
+                    // =================================================
+
+                    const checkoutURL =
                         `/checkout.html?id=${encodeURIComponent(
+                            id
+                        )}&productId=${encodeURIComponent(
                             id
                         )}&phone=${encodeURIComponent(
                             phone
                         )}&email=${encodeURIComponent(
                             email
                         )}`;
+
+
+                    console.log(
+                        "CHECKOUT PRODUCT ID:",
+                        id
+                    );
+
+
+                    window.location.href =
+                        checkoutURL;
                 };
         }
 
