@@ -237,19 +237,29 @@ async function loadProduct() {
 
 
         // =================================================
-        // QUANTITY
-        // =================================================
+// QUANTITY
+// =================================================
 
-        const quantity =
-            document.getElementById(
-                "quantity"
-            );
+const quantity =
+    document.getElementById(
+        "quantity"
+    );
 
-        if (quantity) {
+if (quantity) {
 
-            quantity.textContent =
-                "1";
-        }
+    if (
+        quantity.tagName === "INPUT" ||
+        quantity.tagName === "SELECT" ||
+        quantity.tagName === "TEXTAREA"
+    ) {
+
+        quantity.value = "1";
+
+    } else {
+
+        quantity.textContent = "1";
+    }
+}
 
 
         // =================================================
