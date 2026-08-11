@@ -1,4 +1,4 @@
-const API = "https://shaurya-backend.onrender.com";
+const API = "/api";
 
 let editId = null;
 
