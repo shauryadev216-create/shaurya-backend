@@ -16,7 +16,7 @@ const FRONTEND_URL =
 
 app.use(
     cors({
-        origin: FRONTEND_URL,
+        origin: "https://precious-horse-789355.netlify.app",
         credentials: true
     })
 );

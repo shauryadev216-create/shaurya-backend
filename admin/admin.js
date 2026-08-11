@@ -3,6 +3,66 @@ const API = "https://shaurya-backend.onrender.com";
 let editId = null;
 
 // =====================================================
+// ADMIN AUTHENTICATION CHECK
+// =====================================================
+
+async function checkAdminAccess() {
+
+    try {
+
+        const response =
+            await fetch(
+                API + "/admin-check",
+                {
+                    method: "GET",
+                    credentials: "include"
+                }
+            );
+
+        if (!response.ok) {
+
+            window.location.replace(
+                "/admin-login.html"
+            );
+
+            return false;
+        }
+
+        const data =
+            await response.json();
+
+        if (
+            !data.success ||
+            !data.authenticated
+        ) {
+
+            window.location.replace(
+                "/admin-login.html"
+            );
+
+            return false;
+        }
+
+        return true;
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "ADMIN AUTH CHECK ERROR:",
+            error
+        );
+
+        window.location.replace(
+            "/admin-login.html"
+        );
+
+        return false;
+    }
+}
+
+// =====================================================
 // CLOUDINARY UPLOAD
 // =====================================================
 async function uploadToCloudinary(file) {
@@ -1177,14 +1237,34 @@ function escapeHTML(text) {
 // =====================================================
 // INIT
 // =====================================================
+// =====================================================
+// INIT
+// =====================================================
+
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
+    async () => {
+
+        // =================================================
+        // CHECK ADMIN AUTHENTICATION FIRST
+        // =================================================
+
+        const authenticated =
+            await checkAdminAccess();
+
+        if (!authenticated) {
+            return;
+        }
+
 
         console.log(
-            "✅ Admin JS loaded successfully"
+            "✅ Admin authentication successful"
         );
 
+
+        // =================================================
+        // SAVE BUTTON
+        // =================================================
 
         const saveBtn =
             document.getElementById(
@@ -1216,13 +1296,16 @@ document.addEventListener(
             .querySelectorAll(
                 'input[name="type"]'
             )
-            .forEach(radio => {
+            .forEach(
+                radio => {
 
-                radio.addEventListener(
-                    "change",
-                    updateUploadSections
-                );
-            });
+                    radio.addEventListener(
+                        "change",
+                        updateUploadSections
+                    );
+
+                }
+            );
 
 
         // =================================================
@@ -1233,6 +1316,7 @@ document.addEventListener(
             document.getElementById(
                 "originalPrice"
             );
+
 
         const price =
             document.getElementById(
@@ -1246,6 +1330,7 @@ document.addEventListener(
                 "input",
                 updateDiscount
             );
+
         }
 
 
@@ -1255,11 +1340,12 @@ document.addEventListener(
                 "input",
                 updateDiscount
             );
+
         }
 
 
         // =================================================
-        // INITIAL UI
+        // INITIAL UPLOAD UI
         // =================================================
 
         updateUploadSections();
@@ -1270,5 +1356,6 @@ document.addEventListener(
         // =================================================
 
         loadProducts();
+
     }
 );
