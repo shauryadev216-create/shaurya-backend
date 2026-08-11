@@ -62,9 +62,11 @@ async function checkAdminAccess() {
     }
 }
 
+
 // =====================================================
 // CLOUDINARY UPLOAD
 // =====================================================
+
 async function uploadToCloudinary(file) {
 
     if (!file) {
@@ -102,6 +104,7 @@ async function uploadToCloudinary(file) {
 // =====================================================
 // DESCRIPTION FORMAT
 // =====================================================
+
 function formatDescription(text) {
 
     if (!text) return "";
@@ -113,6 +116,7 @@ function formatDescription(text) {
 // =====================================================
 // DISCOUNT PREVIEW
 // =====================================================
+
 function updateDiscount() {
 
     const originalElement =
@@ -159,6 +163,7 @@ function updateDiscount() {
 // =====================================================
 // GET SELECTED CATEGORIES
 // =====================================================
+
 function getCategories() {
 
     const category = [];
@@ -178,6 +183,7 @@ function getCategories() {
 // =====================================================
 // TYPE UI
 // =====================================================
+
 function updateUploadSections() {
 
     const selectedType =
@@ -212,6 +218,7 @@ function updateUploadSections() {
     // =================================================
     // PHOTO SELECTED
     // =================================================
+
     if (selectedType === "photo") {
 
         photoSection.classList.remove("disabled-section");
@@ -229,7 +236,6 @@ function updateUploadSections() {
             photoOriginal.disabled = false;
         }
 
-
         if (packPreview) {
             packPreview.disabled = true;
         }
@@ -244,6 +250,7 @@ function updateUploadSections() {
     // =================================================
     // PACK SELECTED
     // =================================================
+
     else if (selectedType === "pack") {
 
         packSection.classList.remove("disabled-section");
@@ -261,7 +268,6 @@ function updateUploadSections() {
             photoOriginal.disabled = true;
         }
 
-
         if (packPreview) {
             packPreview.disabled = false;
         }
@@ -276,6 +282,7 @@ function updateUploadSections() {
 // =====================================================
 // UPLOAD PHOTO PRODUCT
 // =====================================================
+
 async function preparePhotoProduct(product) {
 
     const coverInput =
@@ -294,6 +301,7 @@ async function preparePhotoProduct(product) {
     // =================================================
     // NEW PHOTO PRODUCT
     // =================================================
+
     if (!editId) {
 
         if (!coverFile) {
@@ -324,6 +332,7 @@ async function preparePhotoProduct(product) {
     // =================================================
     // EDIT EXISTING PHOTO PRODUCT
     // =================================================
+
     if (coverFile) {
 
         product.cover =
@@ -344,6 +353,7 @@ async function preparePhotoProduct(product) {
 // =====================================================
 // UPLOAD PACK PRODUCT
 // =====================================================
+
 async function preparePackProduct(product) {
 
     const previewInput =
@@ -362,6 +372,7 @@ async function preparePackProduct(product) {
     // =================================================
     // NEW PACK
     // =================================================
+
     if (!editId) {
 
         if (!previewFiles.length) {
@@ -402,6 +413,7 @@ async function preparePackProduct(product) {
     // =================================================
     // EDIT EXISTING PACK
     // =================================================
+
     if (previewFiles.length) {
 
         const previews = [];
@@ -433,6 +445,7 @@ async function preparePackProduct(product) {
 // =====================================================
 // SAVE / UPDATE PRODUCT
 // =====================================================
+
 async function addProduct() {
 
     const saveBtn =
@@ -642,6 +655,8 @@ async function addProduct() {
                     {
                         method: "PUT",
 
+                        credentials: "include",
+
                         headers: {
                             "Content-Type":
                                 "application/json"
@@ -670,6 +685,8 @@ async function addProduct() {
 
                     {
                         method: "POST",
+
+                        credentials: "include",
 
                         headers: {
                             "Content-Type":
@@ -775,6 +792,7 @@ async function addProduct() {
 // =====================================================
 // RESET FORM
 // =====================================================
+
 function resetForm() {
 
     document.getElementById(
@@ -870,6 +888,7 @@ function resetForm() {
 // =====================================================
 // LOAD PRODUCTS
 // =====================================================
+
 async function loadProducts() {
 
     try {
@@ -921,6 +940,7 @@ async function loadProducts() {
 // =====================================================
 // DELETE PRODUCT
 // =====================================================
+
 async function deleteProduct(id) {
 
     if (!confirm(
@@ -939,7 +959,9 @@ async function deleteProduct(id) {
                 encodeURIComponent(id),
 
                 {
-                    method: "DELETE"
+                    method: "DELETE",
+
+                    credentials: "include"
                 }
             );
 
@@ -983,6 +1005,7 @@ async function deleteProduct(id) {
 // =====================================================
 // EDIT PRODUCT
 // =====================================================
+
 function editProduct(p) {
 
     document.getElementById(
@@ -1086,6 +1109,7 @@ function editProduct(p) {
 // =====================================================
 // RENDER ADMIN PRODUCT LIST
 // =====================================================
+
 function renderProducts(products) {
 
     const box =
@@ -1223,6 +1247,7 @@ function renderProducts(products) {
 // =====================================================
 // SIMPLE HTML ESCAPE
 // =====================================================
+
 function escapeHTML(text) {
 
     return String(text)
@@ -1234,9 +1259,6 @@ function escapeHTML(text) {
 }
 
 
-// =====================================================
-// INIT
-// =====================================================
 // =====================================================
 // INIT
 // =====================================================
