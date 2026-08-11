@@ -2,182 +2,1009 @@ const API = "https://shaurya-backend.onrender.com";
 
 let editId = null;
 
-// ================= CLOUDINARY =================
-async function uploadToCloudinary(file){
-    const url = "https://api.cloudinary.com/v1_1/dayaij4yc/auto/upload";
+// =====================================================
+// CLOUDINARY UPLOAD
+// =====================================================
+async function uploadToCloudinary(file) {
+
+    if (!file) {
+        throw new Error("No file selected");
+    }
+
+    const url =
+        "https://api.cloudinary.com/v1_1/dayaij4yc/auto/upload";
 
     const fd = new FormData();
+
     fd.append("file", file);
     fd.append("upload_preset", "unsigned_preset");
 
-    const res = await fetch(url, { method:"POST", body:fd });
+    const res = await fetch(url, {
+        method: "POST",
+        body: fd
+    });
+
     const data = await res.json();
 
-    if(data.secure_url) return data.secure_url;
-    throw new Error("Upload failed");
+    if (!res.ok || !data.secure_url) {
+
+        console.error("Cloudinary error:", data);
+
+        throw new Error(
+            data.error?.message || "Cloudinary upload failed"
+        );
+    }
+
+    return data.secure_url;
 }
 
-// ================= DESCRIPTION =================
-function formatDescription(text){
+
+// =====================================================
+// DESCRIPTION FORMAT
+// =====================================================
+function formatDescription(text) {
+
+    if (!text) return "";
+
     return text.replace(/\r?\n/g, "<br><br>");
 }
 
-// ================= ADD / UPDATE =================
-async function addProduct(){
 
-    try{
+// =====================================================
+// DISCOUNT PREVIEW
+// =====================================================
+function updateDiscount() {
 
-        const title = document.getElementById("title").value.trim();
-        const price = parseFloat(document.getElementById("price").value);
-        const originalPrice = parseFloat(document.getElementById("originalPrice").value);
-        const rawDescription = document.getElementById("description").value;
+    const originalElement =
+        document.getElementById("originalPrice");
 
-        const description = formatDescription(rawDescription);
+    const priceElement =
+        document.getElementById("price");
 
-        const type = document.querySelector('input[name="type"]:checked').value;
+    const box =
+        document.getElementById("discountPreview");
 
-        const category = [];
-        document.querySelectorAll(".category-box input:checked").forEach(c=>{
-            category.push(c.value);
-        });
+    if (!originalElement || !priceElement || !box) {
+        return;
+    }
 
-        // 🔥 CALCULATE DISCOUNT
-        let discount = 0;
-        if(originalPrice && price && originalPrice > price){
-            discount = Math.round(((originalPrice - price)/originalPrice)*100);
-        }
+    const original =
+        parseFloat(originalElement.value);
 
-        let product = {
-            id: editId || Date.now().toString(),
-            title,
-            price,
-            originalPrice: originalPrice || 0,
-            discount,
-            description,
-            category,
-            type
-        };
+    const price =
+        parseFloat(priceElement.value);
 
-        // FILES
-        if(type === "photo"){
-            const cover = document.getElementById("photoCover").files[0];
-            const original = document.getElementById("photoOriginal").files[0];
+    if (
+        !isNaN(original) &&
+        !isNaN(price) &&
+        original > price &&
+        original > 0
+    ) {
 
-            if(cover) product.cover = await uploadToCloudinary(cover);
-            if(original) product.original = await uploadToCloudinary(original);
+        const percent =
+            Math.round(
+                ((original - price) / original) * 100
+            );
 
-        } else {
+        box.innerHTML =
+            `🔥 ${percent}% OFF`;
 
-            const previewFiles = document.getElementById("packPreview").files;
-            const zipFile = document.getElementById("packZip").files[0];
+    } else {
 
-            if(previewFiles.length){
-                let previews = [];
-                for(let file of previewFiles){
-                    previews.push(await uploadToCloudinary(file));
-                }
-                product.preview = previews;
-                product.cover = previews[0];
-            }
-
-            if(zipFile){
-                product.zip = await uploadToCloudinary(zipFile);
-            }
-        }
-
-        // 🔥 UPDATE OR CREATE
-        let url = API + "/add-product";
-        let method = "POST";
-
-        if(editId){
-            url = API + "/update-product/" + editId;
-            method = "PUT";
-        }
-
-        const res = await fetch(url, {
-            method,
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify(product)
-        });
-
-        const data = await res.json();
-
-        if(data.success){
-            alert("✅ Saved!");
-            editId = null;
-            document.getElementById("saveBtn").textContent = "Save Product";
-            loadProducts();
-        }
-
-    }catch(err){
-        console.error(err);
-        alert("Error ❌");
+        box.innerHTML = "";
     }
 }
 
-// ================= EDIT =================
-function editProduct(p){
 
-    document.getElementById("title").value = p.title;
-    document.getElementById("price").value = p.price;
-    document.getElementById("originalPrice").value = p.originalPrice || "";
+// =====================================================
+// GET SELECTED CATEGORIES
+// =====================================================
+function getCategories() {
 
-    document.getElementById("description").value =
-        (p.description || "").replace(/<br><br>/g,"\n");
+    const category = [];
 
-    document.querySelector(`input[value="${p.type}"]`).checked = true;
+    document
+        .querySelectorAll(".category-box input[type='checkbox']:checked")
+        .forEach(c => {
+            category.push(c.value);
+        });
 
-    document.querySelectorAll(".category-box input").forEach(c=>{
-        c.checked = p.category?.includes(c.value);
+    return category;
+}
+
+
+// =====================================================
+// UPLOAD PHOTO PRODUCT
+// =====================================================
+async function preparePhotoProduct(product) {
+
+    const coverInput =
+        document.getElementById("photoCover");
+
+    const originalInput =
+        document.getElementById("photoOriginal");
+
+    const coverFile =
+        coverInput?.files?.[0];
+
+    const originalFile =
+        originalInput?.files?.[0];
+
+
+    // If adding a NEW product, both are required
+    if (!editId) {
+
+        if (!coverFile) {
+            throw new Error("Please upload the Photo Cover.");
+        }
+
+        if (!originalFile) {
+            throw new Error("Please upload the Photo HD file.");
+        }
+
+        product.cover =
+            await uploadToCloudinary(coverFile);
+
+        product.original =
+            await uploadToCloudinary(originalFile);
+
+        product.preview =
+            [product.cover];
+
+        return;
+    }
+
+
+    // Editing:
+    // only replace files if a new file was selected
+    if (coverFile) {
+
+        product.cover =
+            await uploadToCloudinary(coverFile);
+
+        product.preview =
+            [product.cover];
+    }
+
+    if (originalFile) {
+
+        product.original =
+            await uploadToCloudinary(originalFile);
+    }
+}
+
+
+// =====================================================
+// UPLOAD PACK PRODUCT
+// =====================================================
+async function preparePackProduct(product) {
+
+    const previewInput =
+        document.getElementById("packPreview");
+
+    const zipInput =
+        document.getElementById("packZip");
+
+    const previewFiles =
+        previewInput?.files || [];
+
+    const zipFile =
+        zipInput?.files?.[0];
+
+
+    // =================================================
+    // NEW PACK
+    // =================================================
+    if (!editId) {
+
+        if (!previewFiles.length) {
+            throw new Error(
+                "Please upload at least one Pack Preview image."
+            );
+        }
+
+        if (!zipFile) {
+            throw new Error(
+                "Please upload the Pack ZIP file."
+            );
+        }
+
+        const previews = [];
+
+        for (const file of previewFiles) {
+
+            const url =
+                await uploadToCloudinary(file);
+
+            previews.push(url);
+        }
+
+        product.preview = previews;
+
+        product.cover =
+            previews[0] || "";
+
+        product.zip =
+            await uploadToCloudinary(zipFile);
+
+        return;
+    }
+
+
+    // =================================================
+    // EDIT EXISTING PACK
+    // =================================================
+
+    // Only replace previews if new previews were selected
+    if (previewFiles.length) {
+
+        const previews = [];
+
+        for (const file of previewFiles) {
+
+            const url =
+                await uploadToCloudinary(file);
+
+            previews.push(url);
+        }
+
+        product.preview = previews;
+
+        product.cover =
+            previews[0] || product.cover;
+    }
+
+
+    // Only replace ZIP if a new ZIP was selected
+    if (zipFile) {
+
+        product.zip =
+            await uploadToCloudinary(zipFile);
+    }
+}
+
+
+// =====================================================
+// SAVE / UPDATE PRODUCT
+// =====================================================
+async function addProduct() {
+
+    const saveBtn =
+        document.getElementById("saveBtn");
+
+    try {
+
+        // Prevent double-click
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = editId
+                ? "Updating..."
+                : "Saving...";
+        }
+
+
+        // =================================================
+        // BASIC DATA
+        // =================================================
+
+        const title =
+            document.getElementById("title").value.trim();
+
+        const price =
+            document.getElementById("price").value.trim();
+
+        const originalPrice =
+            document
+                .getElementById("originalPrice")
+                .value
+                .trim();
+
+        const rawDescription =
+            document.getElementById("description").value;
+
+        const typeElement =
+            document.querySelector(
+                'input[name="type"]:checked'
+            );
+
+        if (!title) {
+            throw new Error("Please enter a Product Title.");
+        }
+
+        if (!price) {
+            throw new Error("Please enter the Discount Price.");
+        }
+
+        if (!typeElement) {
+            throw new Error("Please select Photo or Pack.");
+        }
+
+
+        const type =
+            typeElement.value;
+
+        const priceNumber =
+            Number(price);
+
+        const originalNumber =
+            Number(originalPrice) || 0;
+
+
+        if (
+            isNaN(priceNumber) ||
+            priceNumber <= 0
+        ) {
+            throw new Error(
+                "Please enter a valid Discount Price."
+            );
+        }
+
+
+        // =================================================
+        // DESCRIPTION
+        // =================================================
+
+        const description =
+            formatDescription(rawDescription);
+
+
+        // =================================================
+        // CATEGORIES
+        // =================================================
+
+        const category =
+            getCategories();
+
+
+        // =================================================
+        // DISCOUNT
+        // =================================================
+
+        let discount = 0;
+
+        if (
+            originalNumber > 0 &&
+            originalNumber > priceNumber
+        ) {
+
+            discount =
+                Math.round(
+                    ((originalNumber - priceNumber) /
+                        originalNumber) * 100
+                );
+        }
+
+
+        // =================================================
+        // PRODUCT OBJECT
+        // =================================================
+
+        const product = {
+
+            id:
+                editId ||
+                Date.now().toString(),
+
+            title:
+
+                title,
+
+            price:
+
+                priceNumber,
+
+            originalPrice:
+
+                originalNumber,
+
+            discount:
+
+                discount,
+
+            description:
+
+                description,
+
+            category:
+
+                category,
+
+            type:
+
+                type
+        };
+
+
+        // =================================================
+        // FILES
+        // =================================================
+
+        if (type === "photo") {
+
+            await preparePhotoProduct(product);
+
+        } else {
+
+            await preparePackProduct(product);
+        }
+
+
+        // =================================================
+        // SEND TO BACKEND
+        // =================================================
+
+        let response;
+
+
+        // =================================================
+        // EDIT EXISTING PRODUCT
+        // =================================================
+
+        if (editId) {
+
+            response =
+                await fetch(
+                    API +
+                    "/update-product/" +
+                    encodeURIComponent(editId),
+
+                    {
+                        method: "PUT",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(product)
+                    }
+                );
+
+        }
+
+        // =================================================
+        // CREATE NEW PRODUCT
+        // =================================================
+
+        else {
+
+            response =
+                await fetch(
+                    API + "/add-product",
+
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(product)
+                    }
+                );
+        }
+
+
+        // =================================================
+        // READ RESPONSE
+        // =================================================
+
+        let data;
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch {
+
+            throw new Error(
+                "Server returned an invalid response."
+            );
+        }
+
+
+        if (!response.ok || !data.success) {
+
+            console.error(
+                "Backend response:",
+                data
+            );
+
+            throw new Error(
+                data.error ||
+                data.message ||
+                "Server failed to save the product."
+            );
+        }
+
+
+        // =================================================
+        // SUCCESS
+        // =================================================
+
+        alert(
+            editId
+                ? "✅ Product updated successfully!"
+                : "✅ Product added successfully!"
+        );
+
+
+        // Reset edit mode
+        editId = null;
+
+
+        // Reset form
+        resetForm();
+
+
+        // Reload products
+        await loadProducts();
+
+
+    } catch (err) {
+
+        console.error(
+            "SAVE PRODUCT ERROR:",
+            err
+        );
+
+        alert(
+            "❌ " +
+            (err.message ||
+                "Something went wrong.")
+        );
+
+    } finally {
+
+        if (saveBtn) {
+
+            saveBtn.disabled = false;
+
+            saveBtn.textContent =
+                editId
+                    ? "Update Product"
+                    : "Save Product";
+        }
+    }
+}
+
+
+// =====================================================
+// RESET FORM
+// =====================================================
+function resetForm() {
+
+    document.getElementById("title").value = "";
+
+    document.getElementById("originalPrice").value = "";
+
+    document.getElementById("price").value = "";
+
+    document.getElementById("description").value = "";
+
+
+    const discountBox =
+        document.getElementById("discountPreview");
+
+    if (discountBox) {
+        discountBox.innerHTML = "";
+    }
+
+
+    // Reset categories
+    document
+        .querySelectorAll(
+            ".category-box input[type='checkbox']"
+        )
+        .forEach(input => {
+            input.checked = false;
+        });
+
+
+    // Reset type to photo
+    const photoRadio =
+        document.querySelector(
+            'input[name="type"][value="photo"]'
+        );
+
+    if (photoRadio) {
+        photoRadio.checked = true;
+    }
+
+
+    // Reset file inputs
+    const fileInputs =
+        document.querySelectorAll(
+            'input[type="file"]'
+        );
+
+    fileInputs.forEach(input => {
+        input.value = "";
     });
 
-    editId = p.id || p._id;
-    document.getElementById("saveBtn").textContent = "Update Product";
+
+    const saveBtn =
+        document.getElementById("saveBtn");
+
+    if (saveBtn) {
+        saveBtn.textContent =
+            "Save Product";
+    }
 }
 
-// ================= LOAD =================
-async function loadProducts(){
-    const res = await fetch(API + "/products");
-    const products = await res.json();
-    renderProducts(products);
+
+// =====================================================
+// LOAD PRODUCTS
+// =====================================================
+async function loadProducts() {
+
+    try {
+
+        const res =
+            await fetch(API + "/products");
+
+        if (!res.ok) {
+            throw new Error(
+                "Could not load products."
+            );
+        }
+
+        const products =
+            await res.json();
+
+        renderProducts(products);
+
+    } catch (err) {
+
+        console.error(
+            "LOAD PRODUCTS ERROR:",
+            err
+        );
+
+        const box =
+            document.getElementById(
+                "product-list-admin"
+            );
+
+        if (box) {
+
+            box.innerHTML =
+                `<p style="color:red;">
+                    Failed to load products.
+                </p>`;
+        }
+    }
 }
 
-// ================= DELETE =================
-async function deleteProduct(id){
-    await fetch(API + "/delete-product/" + id, { method:"DELETE" });
-    loadProducts();
+
+// =====================================================
+// DELETE PRODUCT
+// =====================================================
+async function deleteProduct(id) {
+
+    if (!confirm(
+        "Are you sure you want to delete this product?"
+    )) {
+        return;
+    }
+
+    try {
+
+        const res =
+            await fetch(
+                API +
+                "/delete-product/" +
+                encodeURIComponent(id),
+
+                {
+                    method: "DELETE"
+                }
+            );
+
+        const data =
+            await res.json();
+
+        if (!data.success) {
+
+            throw new Error(
+                data.error ||
+                "Delete failed."
+            );
+        }
+
+        alert("🗑️ Product deleted.");
+
+        await loadProducts();
+
+    } catch (err) {
+
+        console.error(
+            "DELETE ERROR:",
+            err
+        );
+
+        alert(
+            "❌ Delete failed: " +
+            err.message
+        );
+    }
 }
 
-// ================= RENDER =================
-function renderProducts(products){
 
-    const box = document.getElementById("product-list-admin");
+// =====================================================
+// EDIT PRODUCT
+// =====================================================
+function editProduct(p) {
+
+    document.getElementById("title").value =
+        p.title || "";
+
+    document.getElementById("price").value =
+        p.price || "";
+
+    document.getElementById("originalPrice").value =
+        p.originalPrice || "";
+
+
+    // Restore description
+    document.getElementById("description").value =
+        (p.description || "")
+            .replace(/<br><br>/g, "\n")
+            .replace(/<br>/g, "\n");
+
+
+    // Restore type
+    const typeRadio =
+        document.querySelector(
+            `input[name="type"][value="${p.type}"]`
+        );
+
+    if (typeRadio) {
+        typeRadio.checked = true;
+    }
+
+
+    // Restore categories
+    document
+        .querySelectorAll(
+            ".category-box input[type='checkbox']"
+        )
+        .forEach(input => {
+
+            input.checked =
+                Array.isArray(p.category) &&
+                p.category.includes(
+                    input.value
+                );
+        });
+
+
+    // IMPORTANT:
+    // Use MongoDB _id first, then custom id
+    editId =
+        p._id ||
+        p.id;
+
+
+    document.getElementById("saveBtn").textContent =
+        "Update Product";
+
+
+    updateDiscount();
+
+
+    // Scroll to top
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+// =====================================================
+// RENDER ADMIN PRODUCT LIST
+// =====================================================
+function renderProducts(products) {
+
+    const box =
+        document.getElementById(
+            "product-list-admin"
+        );
+
+    if (!box) return;
+
     box.innerHTML = "";
 
-    products.forEach(p=>{
+
+    if (!products || !products.length) {
+
+        box.innerHTML =
+            "<p>No products yet.</p>";
+
+        return;
+    }
+
+
+    products.forEach(p => {
+
+        let discountHTML = "";
+
+
+        if (
+            p.originalPrice &&
+            p.originalPrice > p.price
+        ) {
+
+            const percent =
+                Math.round(
+                    ((p.originalPrice - p.price) /
+                        p.originalPrice) * 100
+                );
+
+            discountHTML =
+                `
+                <span style="
+                    color:#ff4d4d;
+                    font-weight:600;
+                    margin-left:6px;
+                ">
+                    -${percent}%
+                </span>
+                `;
+        }
+
+
+        const productId =
+            p._id ||
+            p.id;
+
 
         box.innerHTML += `
+
         <div class="admin-card">
+
             <div>
-                <b>${p.title}</b><br>
 
-                ${p.discount ? `<span style="color:red">-${p.discount}%</span>` : ""}
+                <b>${escapeHTML(
+                    p.title || "Untitled Product"
+                )}</b>
 
-                ${p.originalPrice ? `<s>₹${p.originalPrice}</s>` : ""}
+                <br>
 
-                <b>₹${p.price}</b>
+                ${
+                    p.originalPrice
+                        ? `
+                            <s>
+                                ₹${p.originalPrice}
+                            </s>
+                          `
+                        : ""
+                }
+
+                <strong>
+                    ₹${p.price || 0}
+                </strong>
+
+                ${discountHTML}
+
+                <br>
+
+                <small>
+                    ${p.type || "product"}
+                </small>
+
             </div>
 
-            <div style="display:flex; gap:10px;">
-                <button onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
-                <button onclick='deleteProduct("${p.id || p._id}")'>Delete</button>
+
+            <div style="
+                display:flex;
+                gap:10px;
+            ">
+
+                <button
+                    class="action-btn edit-btn"
+                    onclick='editProduct(${JSON.stringify(p)})'
+                >
+                    Edit
+                </button>
+
+
+                <button
+                    class="action-btn delete-btn"
+                    onclick='deleteProduct("${productId}")'
+                >
+                    Delete
+                </button>
+
             </div>
-        </div>`;
+
+        </div>
+
+        `;
     });
 }
 
+
+// =====================================================
+// SIMPLE HTML ESCAPE
+// =====================================================
+function escapeHTML(text) {
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+// =====================================================
 // INIT
-document.addEventListener("DOMContentLoaded", ()=>{
-    loadProducts();
-    document.getElementById("saveBtn").addEventListener("click", addProduct);
-});
+// =====================================================
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        console.log(
+            "✅ Admin JS loaded successfully"
+        );
+
+
+        const saveBtn =
+            document.getElementById(
+                "saveBtn"
+            );
+
+        if (!saveBtn) {
+
+            console.error(
+                "❌ Save button not found!"
+            );
+
+            return;
+        }
+
+
+        saveBtn.addEventListener(
+            "click",
+            addProduct
+        );
+
+
+        const originalPrice =
+            document.getElementById(
+                "originalPrice"
+            );
+
+        const price =
+            document.getElementById(
+                "price"
+            );
+
+
+        if (originalPrice) {
+
+            originalPrice.addEventListener(
+                "input",
+                updateDiscount
+            );
+        }
+
+
+        if (price) {
+
+            price.addEventListener(
+                "input",
+                updateDiscount
+            );
+        }
+
+
+        loadProducts();
+    }
+);
