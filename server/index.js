@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 
 const app = express();
 
@@ -10,9 +11,13 @@ const app = express();
 // MIDDLEWARE
 // =====================================================
 
+const FRONTEND_URL =
+    "https://precious-horse-789355.netlify.app";
+
 app.use(
     cors({
-        origin: "*"
+        origin: FRONTEND_URL,
+        credentials: true
     })
 );
 
@@ -21,6 +26,136 @@ app.use(
         limit: "20mb"
     })
 );
+
+// =====================================================
+// ADMIN AUTHENTICATION
+// =====================================================
+
+const ADMIN_USERNAME =
+    process.env.ADMIN_USERNAME;
+
+const ADMIN_PASSWORD =
+    process.env.ADMIN_PASSWORD;
+
+const ADMIN_SESSION_SECRET =
+    process.env.ADMIN_SESSION_SECRET;
+
+
+// =====================================================
+// CREATE SIGNED ADMIN TOKEN
+// =====================================================
+
+function createAdminToken() {
+
+    const timestamp =
+        Date.now().toString();
+
+    const signature =
+        crypto
+            .createHmac(
+                "sha256",
+                ADMIN_SESSION_SECRET
+            )
+            .update(timestamp)
+            .digest("hex");
+
+    return timestamp + "." + signature;
+}
+
+
+// =====================================================
+// VERIFY ADMIN TOKEN
+// =====================================================
+
+function verifyAdminToken(token) {
+
+    if (!token) {
+        return false;
+    }
+
+    const parts =
+        token.split(".");
+
+    if (parts.length !== 2) {
+        return false;
+    }
+
+    const timestamp =
+        parts[0];
+
+    const signature =
+        parts[1];
+
+    const expectedSignature =
+        crypto
+            .createHmac(
+                "sha256",
+                ADMIN_SESSION_SECRET
+            )
+            .update(timestamp)
+            .digest("hex");
+
+    if (signature.length !== expectedSignature.length) {
+        return false;
+    }
+
+    if (
+        !crypto.timingSafeEqual(
+            Buffer.from(signature),
+            Buffer.from(expectedSignature)
+        )
+    ) {
+        return false;
+    }
+
+    const age =
+        Date.now() -
+        Number(timestamp);
+
+    // Session expires after 24 hours
+    if (
+        age < 0 ||
+        age > 24 * 60 * 60 * 1000
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
+
+// =====================================================
+// REQUIRE ADMIN
+// =====================================================
+
+function requireAdmin(req, res, next) {
+
+    const cookies =
+        req.headers.cookie || "";
+
+    const match =
+        cookies.match(
+            /admin_session=([^;]+)/
+        );
+
+    const token =
+        match
+            ? decodeURIComponent(match[1])
+            : null;
+
+    if (!verifyAdminToken(token)) {
+
+        return res.status(401).json({
+
+            success: false,
+
+            message:
+                "Unauthorized"
+        });
+    }
+
+    next();
+}
 
 
 // =====================================================
@@ -174,6 +309,112 @@ app.get(
     }
 );
 
+// =====================================================
+// ADMIN LOGIN
+// =====================================================
+
+app.post(
+    "/admin-login",
+    (req, res) => {
+
+        const {
+            username,
+            password
+        } = req.body;
+
+        if (
+            !username ||
+            !password
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Username and password are required."
+            });
+        }
+
+        if (
+            username !== ADMIN_USERNAME ||
+            password !== ADMIN_PASSWORD
+        ) {
+            return res.status(401).json({
+                success: false,
+                message:
+                    "Invalid username or password."
+            });
+        }
+
+        const token =
+            createAdminToken();
+
+        res.setHeader(
+            "Set-Cookie",
+            [
+                `admin_session=${encodeURIComponent(token)}`,
+                "HttpOnly",
+                "Secure",
+                "SameSite=None",
+                "Path=/",
+                "Max-Age=86400"
+            ].join("; ")
+        );
+
+        res.json({
+            success: true,
+            message:
+                "Admin login successful."
+        });
+    }
+);
+
+
+// =====================================================
+// ADMIN LOGOUT
+// =====================================================
+
+app.post(
+    "/admin-logout",
+    (req, res) => {
+
+        res.setHeader(
+            "Set-Cookie",
+            [
+                "admin_session=",
+                "HttpOnly",
+                "Secure",
+                "SameSite=None",
+                "Path=/",
+                "Max-Age=0"
+            ].join("; ")
+        );
+
+        res.json({
+            success: true
+        });
+    }
+);
+
+
+// =====================================================
+// CHECK ADMIN SESSION
+// =====================================================
+
+app.get(
+    "/admin-check",
+    requireAdmin,
+    (req, res) => {
+
+        res.json({
+            success: true,
+            authenticated: true
+        });
+    }
+);
+
+
+
+    
+
 
 // =====================================================
 // ADD PRODUCT
@@ -181,6 +422,7 @@ app.get(
 
 app.post(
     "/add-product",
+    requireAdmin,
     async (req, res) => {
 
         try {
@@ -273,6 +515,7 @@ app.get(
 
 app.delete(
     "/delete-product/:id",
+    requireAdmin,
     async (req, res) => {
 
         try {
@@ -386,6 +629,7 @@ app.delete(
 
 app.put(
     "/update-product/:id",
+    requireAdmin,
     async (req, res) => {
 
         try {
