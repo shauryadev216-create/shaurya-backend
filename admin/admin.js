@@ -655,6 +655,7 @@ async function addProduct() {
                     {
                         method: "PUT",
 
+                        // 🔐 SEND ADMIN SESSION COOKIE
                         credentials: "include",
 
                         headers: {
@@ -686,6 +687,7 @@ async function addProduct() {
                     {
                         method: "POST",
 
+                        // 🔐 SEND ADMIN SESSION COOKIE
                         credentials: "include",
 
                         headers: {
@@ -961,6 +963,7 @@ async function deleteProduct(id) {
                 {
                     method: "DELETE",
 
+                    // 🔐 SEND ADMIN SESSION COOKIE
                     credentials: "include"
                 }
             );

@@ -1,6 +1,4 @@
-const API =
-    "https://shaurya-backend.onrender.com";
-
+const API = "https://shaurya-backend.onrender.com";
 
 // =====================================================
 // ADMIN LOGIN
@@ -133,7 +131,6 @@ async function loginAdmin() {
             "green";
 
 
-        // Small delay so you can see success
         setTimeout(
             () => {
 
@@ -194,19 +191,18 @@ document.addEventListener(
 
 
         // Allow Enter key
-        document
-            .addEventListener(
-                "keydown",
-                event => {
+        document.addEventListener(
+            "keydown",
+            event => {
 
-                    if (
-                        event.key ===
-                        "Enter"
-                    ) {
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
 
-                        loginAdmin();
-                    }
+                    loginAdmin();
                 }
-            );
+            }
+        );
     }
 );
