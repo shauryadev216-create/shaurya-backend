@@ -929,10 +929,12 @@ h1, h2, h3 {
     padding: 80px 10%;
 }
 
+
 #product-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 40px;
+    width: 100%;
 }
 
 .shop-card img {
@@ -1737,6 +1739,41 @@ body::before {
 
     .product-side {
         padding: 22px;
+    }
+
+}
+
+/* =========================================================
+   SHOP MOBILE FIX
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    #product-list {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .shop-card {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .shop-content {
+        min-width: 0;
+    }
+
+    .shop-content h3 {
+        font-size: 22px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .shop-image img {
+        width: 100%;
+        height: auto;
+        display: block;
     }
 
 }
